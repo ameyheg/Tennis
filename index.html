@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Grand Slam 3D Tennis — Realistic Strike Zone & 1st-Person IK</title>
+  <title>Grand Slam 3D Tennis — True Real-Life Forehand & Backhand Swing</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
@@ -432,7 +432,7 @@
 
     .grip-zone {
       flex: 1;
-      margin: 12px 0;
+      margin: 10px 0;
       border: 3px dashed rgba(212, 255, 0, 0.35);
       border-radius: 20px;
       display: flex;
@@ -444,12 +444,28 @@
     }
 
     .controller-stance-pill {
-      font-size: 1.2rem;
+      font-size: 1.15rem;
       font-weight: 900;
       padding: 6px 18px;
       border-radius: 999px;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
       letter-spacing: 0.05em;
+    }
+
+    .swing-guide-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      width: 100%;
+      max-width: 320px;
+      margin: 6px 0 12px 0;
+    }
+
+    .guide-box {
+      background: rgba(9, 14, 28, 0.78);
+      border-radius: 10px;
+      padding: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
     }
 
     #iosPermissionOverlay {
@@ -510,12 +526,12 @@
     <div class="sensor-row">
       <div style="display:flex; align-items:center; gap:8px;">
         <span class="dot" id="sensorDot"></span>
-        <span id="sensorStatusText">Control: Set Wrist Stance Once, Wait for Bounce & Swing</span>
+        <span id="sensorStatusText">Swing R➔L Across Body = Forehand | Swing L➔R Outward = Backhand</span>
       </div>
       <div style="display:flex; align-items:center; gap:8px;">
-        <span class="stance-badge" id="hudStanceBadge">STANCE: FOREHAND</span>
+        <span class="stance-badge" id="hudStanceBadge">LAST / READY: FOREHAND</span>
         <span id="liveTelemetryText" style="color:var(--accent); font-family:monospace; font-size:0.72rem;">
-          Roll: 0° | Pitch: 0° | Force: 0.0
+          Swing Dir: Neutral | Force: 0.0
         </span>
       </div>
     </div>
@@ -531,7 +547,7 @@
   <div id="menuModal" class="overlay">
     <div class="card">
       <h1>🎾 Grand Slam 3D Tennis</h1>
-      <p class="sub">Realistic Match Cadence — Choose a control mode below:</p>
+      <p class="sub">Real-Life Racket Swing Detection — Choose a control mode below:</p>
 
       <div class="mode-grid">
         <div class="mode-option" id="optHostPC">
@@ -541,7 +557,7 @@
 
         <div class="mode-option" id="optSinglePhone">
           <h3>📱 Single-Phone Motion</h3>
-          <p>Tilt & swing on this phone</p>
+          <p>Swing R➔L (FH) or L➔R (BH)</p>
         </div>
 
         <div class="mode-option" id="optPhoneController">
@@ -551,7 +567,7 @@
 
         <div class="mode-option" id="optTouchMouse">
           <h3>👆 Mouse / Touch IK</h3>
-          <p>Play instantly on screen</p>
+          <p>Swipe Left (FH) or Right (BH)</p>
         </div>
       </div>
 
@@ -591,7 +607,7 @@
   <div id="racketControllerUI" class="hidden">
     <div style="background:rgba(255,255,255,0.06); padding:10px 12px; border-radius:10px; display:flex; justify-content:space-between; align-items:center;">
       <div style="text-align:left;">
-        <div style="font-weight:700; color:var(--accent); font-size:0.9rem;">🎾 60Hz WIRELESS RACKET</div>
+        <div style="font-weight:700; color:var(--accent); font-size:0.9rem;">🎾 REAL-RACKET MOTION CONTROLLER</div>
         <div style="font-size:0.72rem; color:var(--muted);" id="controllerConnSub">Connected to 3D Stadium</div>
       </div>
       <button class="btn" id="btnControllerHand">Hand: Right</button>
@@ -608,33 +624,46 @@
       </div>
 
       <div id="controllerStancePill" class="controller-stance-pill" style="background:rgba(0,240,255,0.2); color:#00f0ff; border:2px solid #00f0ff;">
-        FOREHAND GRIP
+        FOREHAND READY
       </div>
-      <p style="font-size:0.78rem; color:#cbd5e1; max-width:265px; margin-bottom:10px;">
-        <strong>No need to wave continuously:</strong> Set your wrist to Forehand or Backhand once, wait for the ball to bounce into your strike zone, then swing!
-      </p>
 
-      <div style="width:85%; margin:8px 0;">
+      <!-- Clear Real-Racket Swing Direction Visual Guide -->
+      <div class="swing-guide-cards">
+        <div class="guide-box" style="border-color:rgba(0,240,255,0.4);">
+          <div style="color:#00f0ff; font-weight:900; font-size:0.8rem;" id="fhGuideTitle">⬅️ FOREHAND</div>
+          <div style="font-size:0.68rem; color:#cbd5e1; margin-top:2px;" id="fhGuideDesc">
+            Swing <strong>Right ➔ Left</strong> across your body
+          </div>
+        </div>
+        <div class="guide-box" style="border-color:rgba(192,132,252,0.4);">
+          <div style="color:#c084fc; font-weight:900; font-size:0.8rem;" id="bhGuideTitle">➡️ BACKHAND</div>
+          <div style="font-size:0.68rem; color:#cbd5e1; margin-top:2px;" id="bhGuideDesc">
+            Swing <strong>Left ➔ Right</strong> outward away from chest
+          </div>
+        </div>
+      </div>
+
+      <div style="width:85%; margin:6px 0;">
         <div class="mini-meter-bg" style="height:14px;">
           <div class="mini-meter-fill" id="controllerSwingBar"></div>
         </div>
       </div>
-      <div id="controllerDebugText" style="font-family:monospace; font-size:0.78rem; color:var(--accent);">
-        Roll: 0° | Pitch: 0° | Force: 0.0
+      <div id="controllerDebugText" style="font-family:monospace; font-size:0.76rem; color:var(--accent);">
+        Swing Dir: Neutral | Force: 0.0
       </div>
 
-      <div style="display:flex; gap:10px; margin-top:14px; width:100%; justify-content:center;">
+      <div style="display:flex; gap:10px; margin-top:12px; width:100%; justify-content:center;">
         <button class="btn btn-primary" id="btnTapFH" style="padding:10px 16px; background:#00f0ff; border-color:#00f0ff;">
-          Swing FH
+          ⬅️ Tap FH
         </button>
         <button class="btn btn-primary" id="btnTapBH" style="padding:10px 16px; background:#c084fc; border-color:#c084fc;">
-          Swing BH
+          ➡️ Tap BH
         </button>
       </div>
     </div>
 
     <div style="display:flex; gap:10px;">
-      <button class="btn" id="btnCenterRacket" style="flex:1;">Calibrate Grip</button>
+      <button class="btn" id="btnCenterRacket" style="flex:1;">Point at Screen & Calibrate</button>
       <button class="btn" id="btnExitController" style="flex:1;">Exit</button>
     </div>
   </div>
@@ -771,7 +800,7 @@
     const sfx = new SoundEngine();
 
     /******************************************************************
-     * 2. MATCH PACE PRESETS & 6-DOF BIOMECHANICAL SENSOR ENGINE
+     * 2. GRIP-INDEPENDENT REAL-RACKET SWING ENGINE (3D GYRO DOT GRAVITY)
      ******************************************************************/
     const PACE_PRESETS = [
       { label: 'Realistic', serveFrames: 68, rallyFrames: 76, aiFrames: 82 },
@@ -781,9 +810,9 @@
     let paceIdx = 0;
 
     const SENSITIVITY_PRESETS = [
-      { label: 'High', threshold: 7.5 },
-      { label: 'Normal', threshold: 11.5 },
-      { label: 'Low', threshold: 16.5 }
+      { label: 'High', threshold: 7.2 },
+      { label: 'Normal', threshold: 11.0 },
+      { label: 'Low', threshold: 15.5 }
     ];
     let sensitivityIdx = 0;
 
@@ -799,6 +828,8 @@
       eventsReceived: 0,
       handedness: 'RIGHT',
       currentStance: 'FOREHAND',
+      // Continuous arm position across body (-1 = far left hip, +1 = far right hip)
+      armSideRatio: 0.65,
       tiltGamma: 12,
       tiltBeta: 20,
       tiltAlpha: 0,
@@ -812,14 +843,18 @@
       accelY: 0,
       accelZ: 0,
       accelMag: 0,
+      // World-space horizontal swing angular velocity (deg/s around gravity vector):
+      // > 0 = Swinging Right-to-Left (Counter-Clockwise from top)
+      // < 0 = Swinging Left-to-Right (Clockwise from top)
+      worldYawRate: 0,
+      lastDetectedSwingDir: 'Right ➔ Left (FH)',
       prevGx: null,
       prevGy: null,
       prevGz: null,
       lastSwingTime: 0,
+      // 95ms Anti-Takeback Forward Swing Peak Detector
       samplingSwing: false,
-      peakForce: 0,
-      peakSignedLateral: 0,
-      peakGammaAtImpact: 0
+      swingSamples: []
     };
 
     function safeNum(val, fallback = 0) {
@@ -843,24 +878,91 @@
       }
     }
 
-    function updateStanceFromWrist(gammaDeg) {
-      const g = safeNum(gammaDeg, 0);
-      if (motionState.handedness === 'RIGHT') {
-        if (g > 4) motionState.currentStance = 'FOREHAND';
-        else if (g < -4) motionState.currentStance = 'BACKHAND';
-      } else {
-        if (g < -4) motionState.currentStance = 'FOREHAND';
-        else if (g > 4) motionState.currentStance = 'BACKHAND';
+    // Updates continuous arm position across body from compass yaw (alpha) + wrist roll (gamma)
+    function updateContinuousArmPosition() {
+      const rightHandFactor = motionState.handedness === 'RIGHT' ? 1 : -1;
+      // In deviceorientation, turning arm to the right decreases alpha (-tiltAlpha) and rolls wrist right (+tiltGamma)
+      const yawSide = (-safeNum(motionState.tiltAlpha) / 32);
+      const rollSide = (safeNum(motionState.tiltGamma) / 35);
+      const combinedSide = THREE.MathUtils.clamp((yawSide * 0.6 + rollSide * 0.4), -1, 1);
+
+      motionState.armSideRatio = combinedSide;
+
+      // Update ready stance badge when arm clearly moves to one side of the body
+      const bodySideScore = combinedSide * rightHandFactor;
+      if (bodySideScore > 0.15) {
+        motionState.currentStance = 'FOREHAND';
+      } else if (bodySideScore < -0.15) {
+        motionState.currentStance = 'BACKHAND';
       }
       player.racketSide = getSideForStroke(motionState.currentStance);
     }
 
-    function classifySwingStroke(gammaAtImpact, signedLateralImpulse) {
+    /**
+     * Evaluates the 95ms swing sample buffer to distinguish a real Forehand vs. Backhand swing:
+     * - Ignores an initial takeback if the swing reverses direction (locks onto the stronger/later forward swing peak).
+     * - Uses Grip-Independent World Horizontal Angular Velocity (worldYawRate) + Lateral Acceleration.
+     */
+    function analyzeRealRacketSwing(samples) {
       const rightHandFactor = motionState.handedness === 'RIGHT' ? 1 : -1;
-      const wristScore = (safeNum(gammaAtImpact, 0) / 25) * rightHandFactor;
-      const impulseScore = (safeNum(signedLateralImpulse, 0) / 14) * rightHandFactor;
-      const combinedScore = (wristScore * 0.72) + (impulseScore * 0.28);
-      return combinedScore >= -0.05 ? 'FOREHAND' : 'BACKHAND';
+      if (!samples || samples.length === 0) {
+        return { stroke: motionState.currentStance, power: 1.05, aim: 0 };
+      }
+
+      // Split samples into early half (potential takeback) and late half (forward swing through contact)
+      const midIdx = Math.floor(samples.length * 0.4);
+      let maxOverallForce = 0;
+      let bestSample = samples[samples.length - 1];
+
+      for (let i = 0; i < samples.length; i++) {
+        const s = samples[i];
+        // Weight later samples 1.25x so if the player did a quick backswing before swinging forward, the forward swing wins!
+        const forwardBias = i >= midIdx ? 1.25 : 0.85;
+        if (s.force * forwardBias > maxOverallForce) {
+          maxOverallForce = s.force * forwardBias;
+          bestSample = s;
+        }
+      }
+
+      // Determine horizontal swing direction:
+      // worldYawRate > 0 means arm swung Right -> Left (Counter-Clockwise from top)
+      // worldYawRate < 0 means arm swung Left -> Right (Clockwise from top)
+      const yawSignal = bestSample.worldYawRate / 65;       // Normalized horizontal arm rotation
+      const accelSignal = bestSample.signedLateral / 12;    // Normalized across-body linear acceleration
+      const armSideSignal = motionState.armSideRatio * 0.45; // Which side of the body the racket started on
+
+      // Primary authority is the actual physical swing direction (Right->Left vs Left->Right)
+      let directionScoreRightToLeft = 0;
+      if (Math.abs(yawSignal) > 0.35) {
+        directionScoreRightToLeft = yawSignal * 0.75 + accelSignal * 0.25;
+      } else {
+        directionScoreRightToLeft = accelSignal * 0.65 + armSideSignal * 0.35;
+      }
+
+      // For a Right-Handed player:
+      // Swinging Right -> Left (directionScoreRightToLeft > 0) = FOREHAND
+      // Swinging Left -> Right (directionScoreRightToLeft < 0) = BACKHAND
+      const fhScore = directionScoreRightToLeft * rightHandFactor;
+      const detectedStroke = fhScore >= 0 ? 'FOREHAND' : 'BACKHAND';
+
+      const swungRightToLeft = (detectedStroke === 'FOREHAND' && rightHandFactor === 1) ||
+                               (detectedStroke === 'BACKHAND' && rightHandFactor === -1);
+      motionState.lastDetectedSwingDir = swungRightToLeft
+        ? `⬅️ R➔L (${detectedStroke})`
+        : `➡️ L➔R (${detectedStroke})`;
+
+      // Aim cross-court based on follow-through yaw + wrist angle
+      const rawAim = THREE.MathUtils.clamp(
+        (-motionState.tiltAlpha / 38) + (motionState.tiltGamma / 48),
+        -0.95,
+        0.95
+      );
+
+      return {
+        stroke: detectedStroke,
+        power: bestSample.force,
+        aim: rawAim
+      };
     }
 
     function showSecurityNotice(msg) {
@@ -951,7 +1053,7 @@
           motionState.tiltBeta += (targetB - motionState.tiltBeta) * 0.35;
           motionState.tiltAlpha += (targetA - motionState.tiltAlpha) * 0.35;
 
-          updateStanceFromWrist(motionState.tiltGamma);
+          updateContinuousArmPosition();
           updateTelemetryUI();
         }
       });
@@ -965,6 +1067,19 @@
         let signedLateral = 0;
         let ax = 0, ay = 0, az = 0;
 
+        // 1. Extract Unit Gravity Vector (Up Axis in Phone Local Frame)
+        let upX = 0, upY = 0, upZ = 1;
+        if (accG && accG.x !== null && accG.y !== null && accG.z !== null) {
+          const gx = safeNum(accG.x);
+          const gy = safeNum(accG.y);
+          const gz = safeNum(accG.z);
+          const gLen = Math.sqrt(gx * gx + gy * gy + gz * gz) || 9.81;
+          upX = gx / gLen;
+          upY = gy / gLen;
+          upZ = gz / gLen;
+        }
+
+        // 2. Extract Linear Swing Acceleration
         if (acc && acc.x !== null && acc.y !== null && acc.z !== null) {
           motionState.eventsReceived++;
           ax = safeNum(acc.x); ay = safeNum(acc.y); az = safeNum(acc.z);
@@ -991,14 +1106,22 @@
         motionState.accelY = Math.abs(ay) > 1.5 ? ay : 0;
         motionState.accelZ = Math.abs(az) > 1.5 ? az : 0;
 
+        // 3. Grip-Independent 3D Gyroscope Projection onto Gravity Vector:
+        // In W3C DeviceMotionEvent.rotationRate:
+        // beta = ω_x (around X axis), gamma = ω_y (around Y axis), alpha = ω_z (around Z axis)
+        // Dot product (ω · up) gives true horizontal swing angular velocity (Right->Left > 0, Left->Right < 0)
+        // regardless of whether the phone is held flat, vertical like a racket blade, or tilted!
         let rotBoost = 0;
+        let worldYawRate = 0;
         if (rot && (rot.alpha !== null || rot.beta !== null || rot.gamma !== null)) {
-          const ra = safeNum(rot.alpha);
-          const rb = safeNum(rot.beta);
-          const rg = safeNum(rot.gamma);
-          const rotMag = Math.sqrt(ra * ra + rb * rb + rg * rg);
-          rotBoost = rotMag / 22;
-          if (Math.abs(rg) > 40) signedLateral += (rg / 25);
+          const wx = safeNum(rot.beta);  // X-axis rotation rate
+          const wy = safeNum(rot.gamma); // Y-axis rotation rate
+          const wz = safeNum(rot.alpha); // Z-axis rotation rate
+          const rotMag = Math.sqrt(wx * wx + wy * wy + wz * wz);
+          rotBoost = rotMag / 21;
+
+          worldYawRate = (wx * upX) + (wy * upY) + (wz * upZ);
+          motionState.worldYawRate = worldYawRate;
         }
 
         const combinedForce = safeNum(Math.max(linearMag, rotBoost), 0);
@@ -1008,25 +1131,25 @@
         const threshold = SENSITIVITY_PRESETS[sensitivityIdx].threshold;
         const now = performance.now();
 
+        // 4. 95ms Anti-Takeback Forward Swing Peak Capture Window
         if (combinedForce > threshold && now - motionState.lastSwingTime > 340) {
           if (!motionState.samplingSwing) {
             motionState.samplingSwing = true;
-            motionState.peakForce = combinedForce;
-            motionState.peakSignedLateral = signedLateral;
-            motionState.peakGammaAtImpact = motionState.tiltGamma;
+            motionState.swingSamples = [{
+              force: combinedForce,
+              worldYawRate: worldYawRate,
+              signedLateral: signedLateral
+            }];
 
             setTimeout(() => {
+              const result = analyzeRealRacketSwing(motionState.swingSamples);
               motionState.samplingSwing = false;
+              motionState.swingSamples = [];
               motionState.lastSwingTime = performance.now();
 
-              const finalPower = Math.min(1.45, Math.max(0.9, motionState.peakForce / threshold));
-              const aimRatio = motionState.peakGammaAtImpact / 40;
-              const detectedStroke = classifySwingStroke(
-                motionState.peakGammaAtImpact,
-                motionState.peakSignedLateral
-              );
-
-              motionState.currentStance = detectedStroke;
+              const finalPower = Math.min(1.45, Math.max(0.9, result.power / threshold));
+              motionState.currentStance = result.stroke;
+              player.racketSide = getSideForStroke(result.stroke);
               updateTelemetryUI();
 
               if (navigator.vibrate) navigator.vibrate(40);
@@ -1035,17 +1158,20 @@
                 peerConn.send({
                   type: 'SWING',
                   power: finalPower,
-                  aim: aimRatio,
-                  stroke: detectedStroke
+                  aim: result.aim,
+                  stroke: result.stroke,
+                  swingDirLabel: motionState.lastDetectedSwingDir
                 });
               } else {
-                triggerPlayerSwing(finalPower, aimRatio, detectedStroke);
+                triggerPlayerSwing(finalPower, result.aim, result.stroke);
               }
-            }, 45);
-          } else if (combinedForce > motionState.peakForce) {
-            motionState.peakForce = combinedForce;
-            motionState.peakSignedLateral = signedLateral;
-            motionState.peakGammaAtImpact = motionState.tiltGamma;
+            }, 95);
+          } else {
+            motionState.swingSamples.push({
+              force: combinedForce,
+              worldYawRate: worldYawRate,
+              signedLateral: signedLateral
+            });
           }
         }
       });
@@ -1058,6 +1184,7 @@
       motionState.tiltGamma = 0;
       motionState.tiltBeta = 0;
       motionState.tiltAlpha = 0;
+      motionState.armSideRatio = motionState.handedness === 'RIGHT' ? 0.5 : -0.5;
       if (navigator.vibrate) navigator.vibrate(25);
     }
 
@@ -1069,7 +1196,7 @@
       const ctrlBar = document.getElementById('controllerSwingBar');
       if (ctrlBar) ctrlBar.style.width = `${pct}%`;
 
-      const txt = `Roll: ${Math.round(safeNum(motionState.tiltGamma))}° | Pitch: ${Math.round(safeNum(motionState.tiltBeta))}° | Force: ${safeNum(motionState.accelMag).toFixed(1)}`;
+      const txt = `Last Swing: ${motionState.lastDetectedSwingDir} | Force: ${safeNum(motionState.accelMag).toFixed(1)}`;
       const hudTxt = document.getElementById('liveTelemetryText');
       if (hudTxt) hudTxt.textContent = txt;
 
@@ -1079,14 +1206,14 @@
       const isFH = motionState.currentStance === 'FOREHAND';
       const hudBadge = document.getElementById('hudStanceBadge');
       if (hudBadge) {
-        hudBadge.textContent = `STANCE: ${motionState.currentStance}`;
+        hudBadge.textContent = `READY: ${motionState.currentStance}`;
         hudBadge.classList.toggle('backhand', !isFH);
       }
 
       const ctrlPill = document.getElementById('controllerStancePill');
       const ctrlZone = document.getElementById('controllerGripZone');
       if (ctrlPill && ctrlZone) {
-        ctrlPill.textContent = `${motionState.currentStance} GRIP`;
+        ctrlPill.textContent = `${motionState.currentStance} READY`;
         if (isFH) {
           ctrlPill.style.background = 'rgba(0, 240, 255, 0.2)';
           ctrlPill.style.color = '#00f0ff';
@@ -1173,6 +1300,7 @@
             motionState.tiltGamma = safeNum(data.gamma, motionState.tiltGamma);
             motionState.tiltBeta = safeNum(data.beta, 0);
             motionState.tiltAlpha = safeNum(data.alpha, 0);
+            motionState.armSideRatio = safeNum(data.armSideRatio, motionState.armSideRatio);
             motionState.accelX = safeNum(data.ax, 0);
             motionState.accelY = safeNum(data.ay, 0);
             motionState.accelZ = safeNum(data.az, 0);
@@ -1189,6 +1317,7 @@
             }
             updateTelemetryUI();
           } else if (data.type === 'SWING') {
+            if (data.swingDirLabel) motionState.lastDetectedSwingDir = data.swingDirLabel;
             triggerPlayerSwing(safeNum(data.power, 1.1), safeNum(data.aim, 0), data.stroke);
           }
         });
@@ -1238,6 +1367,7 @@
                 gamma: safeNum(motionState.tiltGamma),
                 beta: safeNum(motionState.tiltBeta),
                 alpha: safeNum(motionState.tiltAlpha),
+                armSideRatio: safeNum(motionState.armSideRatio),
                 ax: safeNum(motionState.accelX),
                 ay: safeNum(motionState.accelY),
                 az: safeNum(motionState.accelZ),
@@ -1270,7 +1400,6 @@
     scene.background = new THREE.Color(0x060b18);
     scene.fog = new THREE.FogExp2(0x060b18, 0.00095);
 
-    // Near plane set to 1.0 and Far to 1200 for rock-solid WebGL depth buffer precision
     const camera = new THREE.PerspectiveCamera(58, window.innerWidth / window.innerHeight, 1.0, 1200);
     const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -2125,7 +2254,6 @@
 
     const fpvRig = createFirstPersonBiomechanicalRig();
 
-    // Glowing Early Landing Target Indicator on Player's Court Floor
     const landingSpotGroup = new THREE.Group();
     const outerTargetRing = new THREE.Mesh(
       new THREE.RingGeometry(2.6, 3.4, 32),
@@ -2166,7 +2294,6 @@
       trailMeshes.push(m);
     }
 
-    // Shared Geometry for Court Bounce Marks & Sparks (Zero WebGL Memory Leaks!)
     const sharedBounceRingGeo = new THREE.RingGeometry(0.4, 2.2, 24);
     const bounceMarks = [];
     function spawnBounceMark3D(wx, wz, isCleanBoost) {
@@ -2208,7 +2335,6 @@
      * 5. SPEED-INVARIANT BALLISTIC PHYSICS & REALISTIC STRIKE ZONE
      ******************************************************************/
     const COURT = { widthNear: 360, netZ: 50, netHeight: 16 };
-    // Maximum Z distance where the player is allowed to strike an incoming ball (must be on player's side near/after bounce!)
     const PLAYER_MAX_STRIKE_Z = 28;
     const PLAYER_MIN_STRIKE_Z = -16;
     let cameraShake = 0;
@@ -2220,7 +2346,7 @@
       pGames: 0,
       aiGames: 0,
       waitingForServe: true,
-      bannerText: 'SET WRIST STANCE • SWING OR SWIPE TO SERVE!',
+      bannerText: 'SWING PHONE OR SWIPE TO SERVE!',
       shotFeedback: '',
       shotFeedbackSub: '',
       shotFeedbackColor: '#d4ff00',
@@ -2292,7 +2418,7 @@
       ball.y = 19;
       ball.z = player.z + 5;
       ball.vx = 0; ball.vy = 0; ball.vz = 0;
-      scoreState.bannerText = 'SET WRIST STANCE • SWING OR SWIPE TO SERVE!';
+      scoreState.bannerText = 'SWING PHONE OR SWIPE TO SERVE!';
     }
 
     function showFeedback(text, subText = '', color = '#d4ff00') {
@@ -2351,7 +2477,6 @@
 
       // 2. Check if Player Swung TOO EARLY (Before the ball reached the strike zone!)
       if (ball.vz < 0 && ball.z > PLAYER_MAX_STRIKE_Z) {
-        // Short 10-frame recovery cooldown so player can still swing when the ball arrives!
         player.swingCooldown = 10;
         showFeedback(
           '⏳ TOO EARLY!',
@@ -2361,7 +2486,7 @@
         return;
       }
 
-      // 3. Returning Ball Inside Valid Strike Zone (ball.z between -16 and 28)
+      // 3. Returning Ball Inside Valid Strike Zone
       const dx = Math.abs(ball.x - player.x);
       if (ball.vz < 0 && ball.z <= PLAYER_MAX_STRIKE_Z && ball.z >= PLAYER_MIN_STRIKE_Z && dx < 145) {
         player.swingCooldown = 24;
@@ -2381,6 +2506,11 @@
         let flightFrames = pace.rallyFrames;
         let midArcY = 23.5;
 
+        const rightFactor = motionState.handedness === 'RIGHT' ? 1 : -1;
+        const reqDirText = (requiredStroke === 'FOREHAND' && rightFactor === 1) || (requiredStroke === 'BACKHAND' && rightFactor === -1)
+          ? 'Right ➔ Left'
+          : 'Left ➔ Right';
+
         if (isMatchedStroke) {
           if (swingStroke === 'BACKHAND') targetX *= 1.08;
           targetX = THREE.MathUtils.clamp(targetX, -102, 102);
@@ -2396,7 +2526,7 @@
           spawnHitSparks3D(ball.x, ball.y, ball.z, sparkHex, 20);
           showFeedback(
             `⚡ CLEAN ${swingStroke}!`,
-            '1.2x LOW-TO-HIGH TOPSPIN BONUS',
+            `Swung ${reqDirText} • 1.2x POWER BONUS`,
             strokeColor
           );
         } else {
@@ -2410,8 +2540,8 @@
           spawnHitSparks3D(ball.x, ball.y, ball.z, 0xf59e0b, 8);
 
           showFeedback(
-            '⚠️ AWKWARD REACH!',
-            `Swung ${swingStroke} on ${requiredStroke} side (0.78x)`,
+            `⚠️ WRONG SWING DIRECTION!`,
+            `Needed ${requiredStroke} (${reqDirText}) • 0.78x Penalty`,
             '#f59e0b'
           );
         }
@@ -2481,9 +2611,9 @@
 
         motionState.tiltGamma = normX * 34;
         motionState.tiltBeta = normY * 28;
-        motionState.tiltAlpha = -normX * 24;
+        motionState.tiltAlpha = -normX * 28;
 
-        updateStanceFromWrist(motionState.tiltGamma);
+        updateContinuousArmPosition();
         updateTelemetryUI();
       }
     });
@@ -2499,13 +2629,16 @@
       const aim = Math.max(-1, Math.min(1, dx / 160));
 
       let swipeStroke;
-      if (Math.abs(dx) > 22) {
-        const sweptLeft = dx < 0;
+      if (Math.abs(dx) > 20) {
+        const sweptLeft = dx < 0; // Swiping Right -> Left on screen
         if (motionState.handedness === 'RIGHT') {
           swipeStroke = sweptLeft ? 'FOREHAND' : 'BACKHAND';
         } else {
           swipeStroke = sweptLeft ? 'BACKHAND' : 'FOREHAND';
         }
+        motionState.lastDetectedSwingDir = sweptLeft
+          ? `⬅️ R➔L (${swipeStroke})`
+          : `➡️ L➔R (${swipeStroke})`;
       } else {
         const tapWorldX = ((e.clientX / window.innerWidth) * 2 - 1) * 160;
         swipeStroke = getRequiredStrokeForBall(tapWorldX, player.x);
@@ -2515,7 +2648,7 @@
     });
 
     /******************************************************************
-     * 7. SELF-HEALING CAMERA GUARD & BIOMECHANICAL IK SOLVER
+     * 7. SELF-HEALING CAMERA GUARD & SMOOTH CONTINUOUS 1ST-PERSON IK
      ******************************************************************/
     function updateCameraFovForAspect() {
       const aspect = (window.innerWidth || 1) / (window.innerHeight || 1);
@@ -2554,7 +2687,8 @@
       ai.prevX = ai.x;
 
       if (!scoreState.waitingForServe) {
-        const desiredStanceOffset = -player.racketSide * 13;
+        const reqSide = getSideForStroke(getRequiredStrokeForBall(ball.targetLandingX, player.x));
+        const desiredStanceOffset = -reqSide * 13;
         const trackX = ball.vz < 0 ? ball.targetLandingX : ball.x * 0.5;
         player.targetX = (trackX * 0.88) + desiredStanceOffset;
       }
@@ -2659,9 +2793,7 @@
     function updateFirstPersonBiomechanicalRig(now) {
       const handSign = motionState.handedness === 'RIGHT' ? 1 : -1;
       const isFH = motionState.currentStance === 'FOREHAND';
-      const rollRad = (safeNum(motionState.tiltGamma) * Math.PI) / 180;
       const pitchRad = (safeNum(motionState.tiltBeta) * Math.PI) / 180;
-      const yawRad = (safeNum(motionState.tiltAlpha) * Math.PI) / 180;
 
       const domShoulder = new THREE.Vector3(handSign * 3.8, -4.5, 1.4);
       let targetWristPos = new THREE.Vector3();
@@ -2713,38 +2845,36 @@
           targetRot.set(sample.rotX, sample.rotY, sample.rotZ);
         }
       } else {
+        // CONTINUOUS 1:1 ARM POSITION ACROSS BODY (No sudden teleporting between FH and BH!)
         const idleBreath = Math.sin(now * 0.004) * 0.14;
-        const stanceBaseX = isFH ? (handSign * 3.3) : (-handSign * 2.6);
-        const liveSweepX = THREE.MathUtils.clamp(
-          stanceBaseX + (rollRad * 3.2) - (yawRad * 2.0) + (safeNum(motionState.accelX) * 0.08),
-          -6.4,
-          6.4
+        const continuousSweepX = THREE.MathUtils.clamp(
+          safeNum(motionState.armSideRatio) * 5.2 + (safeNum(motionState.accelX) * 0.06),
+          -6.2,
+          6.2
         );
         const liveHeightY = THREE.MathUtils.clamp(
           -3.6 + (pitchRad * 2.4) + (safeNum(motionState.accelY) * 0.08) + idleBreath,
           -6.0,
           2.2
         );
-        const coilDepthZ = -6.8 + Math.abs(liveSweepX) * 0.2;
+        const coilDepthZ = -6.8 + Math.abs(continuousSweepX) * 0.18;
 
-        targetWristPos.set(liveSweepX, liveHeightY, coilDepthZ);
+        targetWristPos.set(continuousSweepX, liveHeightY, coilDepthZ);
 
-        const cantAngle = isFH
-          ? (-handSign * 0.42 - rollRad * 0.75)
-          : (handSign * 0.48 - rollRad * 0.75);
-
+        // Racket head cants naturally across the body as the hand moves from right hip to left hip
+        const continuousCant = -continuousSweepX * 0.18;
         targetRot.set(
           -0.38 + pitchRad * 0.65,
-          -liveSweepX * 0.1 + yawRad * 0.4,
-          cantAngle
+          -continuousSweepX * 0.12,
+          continuousCant
         );
 
         if (scoreState.waitingForServe) {
           showOffHand = true;
           offHandPos.set(-handSign * 2.2, -3.1 + idleBreath * 1.4, -6.5);
-        } else if (Math.abs(liveSweepX) < 3.4) {
+        } else if (Math.abs(continuousSweepX) < 3.0) {
           showOffHand = true;
-          offHandPos.set(liveSweepX - handSign * 1.1, liveHeightY + 2.8, coilDepthZ - 1.2);
+          offHandPos.set(continuousSweepX - handSign * 1.1, liveHeightY + 2.8, coilDepthZ - 1.2);
         }
       }
 
@@ -2830,7 +2960,6 @@
     const ndcTestVec = new THREE.Vector3();
 
     function applySmartCameraWithFrustumGuard(camMode, px3, pz3, bx3, by3, bz3, aix3, shakeX, shakeY, now) {
-      // Self-Healing NaN Watchdog: If camera or look target ever corrupts, restore immediately!
       if (!Number.isFinite(camera.position.x) || !Number.isFinite(camera.position.y) || !Number.isFinite(camera.position.z)) {
         camera.position.set(0, 18.2, 116);
       }
@@ -2891,7 +3020,6 @@
       camera.lookAt(smoothedLookTarget);
       camera.updateMatrixWorld();
 
-      // Fixed Frustum Guard: Strictly positive clamped [0.0, 0.65] so it can NEVER diverge to NaN!
       if (!scoreState.waitingForServe) {
         ndcTestVec.set(bx3, by3, bz3).project(camera);
         if (Number.isFinite(ndcTestVec.x) && Number.isFinite(ndcTestVec.y) && ndcTestVec.z > 0 && ndcTestVec.z < 1.0) {
@@ -3051,15 +3179,20 @@
       const h = hudCanvas.height;
       hudCtx.clearRect(0, 0, w, h);
 
-      // Show incoming reticle with clear "WAIT" (far) vs "🔥 SWING FH/BH!" (in strike zone) states
+      // Show incoming reticle with unmistakable directional swing arrows: "⬅️ SWING R→L (FH)" vs "➡️ SWING L→R (BH)"
       if (!scoreState.waitingForServe && ball.vz < 0 && ball.z < 92 && ball.z > -14) {
         tempVec.copy(ballMesh.position);
         tempVec.project(camera);
         if (Number.isFinite(tempVec.x) && Number.isFinite(tempVec.y) && tempVec.z > 0 && tempVec.z < 1) {
-          const sx = THREE.MathUtils.clamp((tempVec.x * 0.5 + 0.5) * w, 40, w - 40);
-          const sy = THREE.MathUtils.clamp((-(tempVec.y * 0.5) + 0.5) * h, 50, h - 50);
+          const sx = THREE.MathUtils.clamp((tempVec.x * 0.5 + 0.5) * w, 55, w - 55);
+          const sy = THREE.MathUtils.clamp((-(tempVec.y * 0.5) + 0.5) * h, 55, h - 55);
 
           const reqStroke = getRequiredStrokeForBall(ball.targetLandingX, player.x);
+          const rightFactor = motionState.handedness === 'RIGHT' ? 1 : -1;
+          const swingLeftArrow = (reqStroke === 'FOREHAND' && rightFactor === 1) ||
+                                 (reqStroke === 'BACKHAND' && rightFactor === -1);
+          const dirPrompt = swingLeftArrow ? '⬅️ R→L' : '➡️ L→R';
+
           const inStrikeZone = ball.z <= PLAYER_MAX_STRIKE_Z;
           const ringColor = inStrikeZone
             ? (reqStroke === 'FOREHAND' ? '#00f0ff' : '#c084fc')
@@ -3079,17 +3212,18 @@
           hudCtx.stroke();
           hudCtx.setLineDash([]);
 
-          hudCtx.fillStyle = 'rgba(5, 8, 17, 0.9)';
+          hudCtx.fillStyle = 'rgba(5, 8, 17, 0.92)';
           hudCtx.beginPath();
-          hudCtx.roundRect(sx - 42, sy - pulseRadius - 26, 84, 20, 6);
+          hudCtx.roundRect(sx - 56, sy - pulseRadius - 26, 112, 20, 6);
           hudCtx.fill();
 
           hudCtx.fillStyle = inStrikeZone ? '#d4ff00' : (reqStroke === 'FOREHAND' ? '#00f0ff' : '#c084fc');
           hudCtx.font = '900 11px system-ui, sans-serif';
           hudCtx.textAlign = 'center';
+          const shortStroke = reqStroke === 'FOREHAND' ? 'FH' : 'BH';
           const label = inStrikeZone
-            ? `🔥 SWING ${reqStroke === 'FOREHAND' ? 'FH' : 'BH'}!`
-            : `WAIT • ${reqStroke === 'FOREHAND' ? 'FH' : 'BH'}`;
+            ? `🔥 SWING ${dirPrompt} (${shortStroke})`
+            : `WAIT • ${dirPrompt} (${shortStroke})`;
           hudCtx.fillText(label, sx, sy - pulseRadius - 12);
           hudCtx.restore();
         }
@@ -3157,10 +3291,22 @@
 
     function toggleHandedness() {
       motionState.handedness = motionState.handedness === 'RIGHT' ? 'LEFT' : 'RIGHT';
-      const label = `Hand: ${motionState.handedness === 'RIGHT' ? 'Right' : 'Left'}`;
+      const isRight = motionState.handedness === 'RIGHT';
+      const label = `Hand: ${isRight ? 'Right' : 'Left'}`;
       document.getElementById('btnHandedness').textContent = label;
       document.getElementById('btnControllerHand').textContent = label;
-      updateStanceFromWrist(motionState.tiltGamma);
+
+      // Update controller guide cards for Righty vs Lefty
+      document.getElementById('fhGuideTitle').textContent = isRight ? '⬅️ FOREHAND' : '➡️ FOREHAND';
+      document.getElementById('fhGuideDesc').innerHTML = isRight
+        ? 'Swing <strong>Right ➔ Left</strong> across your body'
+        : 'Swing <strong>Left ➔ Right</strong> across your body';
+      document.getElementById('bhGuideTitle').textContent = isRight ? '➡️ BACKHAND' : '⬅️ BACKHAND';
+      document.getElementById('bhGuideDesc').innerHTML = isRight
+        ? 'Swing <strong>Left ➔ Right</strong> outward away from chest'
+        : 'Swing <strong>Right ➔ Left</strong> outward away from chest';
+
+      updateContinuousArmPosition();
       updateTelemetryUI();
     }
 
@@ -3172,7 +3318,7 @@
       const ok = await enableMotionSensors();
       if (ok) {
         document.getElementById('sensorDot').classList.add('live');
-        document.getElementById('sensorStatusText').textContent = 'Set Wrist Once, Wait for Bounce & Swing';
+        document.getElementById('sensorStatusText').textContent = 'Swing R➔L Across Body = FH | Swing L➔R Outward = BH';
       }
     });
 
@@ -3221,7 +3367,13 @@
       const aimRatio = motionState.tiltGamma / 40;
       if (navigator.vibrate) navigator.vibrate(35);
       if (peerConn && peerConn.open) {
-        peerConn.send({ type: 'SWING', power: 1.15, aim: aimRatio, stroke: 'FOREHAND' });
+        peerConn.send({
+          type: 'SWING',
+          power: 1.15,
+          aim: aimRatio,
+          stroke: 'FOREHAND',
+          swingDirLabel: '⬅️ R➔L (FOREHAND)'
+        });
       }
     });
 
@@ -3229,7 +3381,13 @@
       const aimRatio = motionState.tiltGamma / 40;
       if (navigator.vibrate) navigator.vibrate(35);
       if (peerConn && peerConn.open) {
-        peerConn.send({ type: 'SWING', power: 1.15, aim: aimRatio, stroke: 'BACKHAND' });
+        peerConn.send({
+          type: 'SWING',
+          power: 1.15,
+          aim: aimRatio,
+          stroke: 'BACKHAND',
+          swingDirLabel: '➡️ L➔R (BACKHAND)'
+        });
       }
     });
 
