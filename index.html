@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Grand Slam 3D Tennis — Real-Life 1st-Person Biomechanics</title>
+  <title>Grand Slam 3D Tennis — 1st-Person IK & Smart Camera</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
@@ -54,15 +54,15 @@
     /* Broadcast TV Scorebug & Top Controls */
     #hud {
       position: fixed;
-      top: 14px;
-      left: 16px;
-      right: 16px;
+      top: 12px;
+      left: 14px;
+      right: 14px;
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
       pointer-events: none;
       z-index: 10;
-      gap: 12px;
+      gap: 10px;
     }
 
     .tv-scorebug {
@@ -72,16 +72,16 @@
       border-left: 4px solid var(--accent);
       border-radius: 10px;
       overflow: hidden;
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
-      min-width: 240px;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.6);
+      min-width: 225px;
     }
 
     .tv-header {
       background: rgba(255, 255, 255, 0.06);
-      padding: 4px 12px;
-      font-size: 0.62rem;
+      padding: 3px 10px;
+      font-size: 0.6rem;
       font-weight: 800;
-      letter-spacing: 0.14em;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
       color: var(--accent);
       display: flex;
@@ -90,16 +90,15 @@
 
     .tv-row {
       display: grid;
-      grid-template-columns: 1fr 34px 44px;
+      grid-template-columns: 1fr 32px 40px;
       align-items: center;
-      padding: 6px 12px;
+      padding: 5px 10px;
       border-top: 1px solid rgba(255, 255, 255, 0.07);
     }
 
     .tv-player {
-      font-size: 0.82rem;
+      font-size: 0.78rem;
       font-weight: 700;
-      letter-spacing: 0.04em;
       display: flex;
       align-items: center;
       gap: 6px;
@@ -115,7 +114,7 @@
 
     .tv-games {
       text-align: center;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       font-weight: 700;
       color: #cbd5e1;
       background: rgba(0, 0, 0, 0.35);
@@ -125,19 +124,19 @@
 
     .tv-points {
       text-align: center;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       font-weight: 900;
       color: #090d16;
       background: var(--accent);
       padding: 2px 0;
       border-radius: 4px;
-      margin-left: 6px;
+      margin-left: 5px;
     }
 
     .controls-bar {
       pointer-events: auto;
       display: flex;
-      gap: 7px;
+      gap: 6px;
       flex-wrap: wrap;
       justify-content: flex-end;
       max-width: 65vw;
@@ -148,13 +147,13 @@
       backdrop-filter: blur(10px);
       color: var(--text);
       border: 1px solid var(--glass-border);
-      padding: 8px 13px;
+      padding: 7px 11px;
       border-radius: 8px;
-      font-size: 0.78rem;
+      font-size: 0.75rem;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.15s ease;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
     }
 
     .btn:hover {
@@ -178,37 +177,35 @@
 
     #securityBanner {
       position: fixed;
-      top: 96px;
-      left: 16px;
-      right: 16px;
+      top: 90px;
+      left: 14px;
+      right: 14px;
       background: rgba(239, 68, 68, 0.95);
       color: #fff;
-      padding: 10px 14px;
-      border-radius: 10px;
-      font-size: 0.8rem;
-      line-height: 1.35;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.76rem;
       z-index: 25;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
     }
 
     /* Bottom Telemetry Bar */
     .sensor-pill {
       position: fixed;
-      bottom: 12px;
-      left: 16px;
-      right: 16px;
+      bottom: 10px;
+      left: 14px;
+      right: 14px;
       background: var(--panel);
       backdrop-filter: blur(12px);
       border: 1px solid var(--glass-border);
-      padding: 10px 16px;
-      border-radius: 12px;
-      font-size: 0.78rem;
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 0.75rem;
       z-index: 10;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 5px;
       pointer-events: auto;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
     }
 
     .sensor-row {
@@ -220,27 +217,27 @@
     }
 
     .dot {
-      width: 10px;
-      height: 10px;
+      width: 9px;
+      height: 9px;
       border-radius: 50%;
       background: #64748b;
       display: inline-block;
     }
     .dot.live {
       background: #22c55e;
-      box-shadow: 0 0 10px #22c55e;
+      box-shadow: 0 0 8px #22c55e;
     }
     .dot.warn {
       background: #f59e0b;
-      box-shadow: 0 0 10px #f59e0b;
+      box-shadow: 0 0 8px #f59e0b;
     }
 
     .stance-badge {
-      padding: 3px 10px;
-      border-radius: 6px;
+      padding: 2px 8px;
+      border-radius: 5px;
       font-weight: 800;
-      font-size: 0.73rem;
-      letter-spacing: 0.05em;
+      font-size: 0.7rem;
+      letter-spacing: 0.04em;
       background: rgba(0, 240, 255, 0.16);
       color: var(--fh-color);
       border: 1px solid rgba(0, 240, 255, 0.45);
@@ -253,7 +250,7 @@
 
     .mini-meter-bg {
       flex: 1;
-      height: 9px;
+      height: 8px;
       background: rgba(255, 255, 255, 0.07);
       border-radius: 999px;
       overflow: hidden;
@@ -267,18 +264,18 @@
       transition: width 0.05s linear;
     }
 
-    /* Modal / Menu Screen */
+    /* Compact No-Scroll Modal / Menu Screen */
     .overlay {
       position: fixed;
       inset: 0;
-      background: radial-gradient(circle at center, rgba(15, 23, 42, 0.76) 0%, rgba(5, 8, 17, 0.94) 100%);
-      backdrop-filter: blur(12px);
+      background: radial-gradient(circle at center, rgba(15, 23, 42, 0.78) 0%, rgba(5, 8, 17, 0.94) 100%);
+      backdrop-filter: blur(10px);
       display: flex;
       align-items: center;
       justify-content: center;
       z-index: 30;
-      padding: 16px;
-      overflow-y: auto;
+      padding: 10px;
+      overflow: hidden;
     }
 
     .hidden {
@@ -286,127 +283,126 @@
     }
 
     .card {
-      background: linear-gradient(160deg, rgba(30, 41, 59, 0.96) 0%, rgba(12, 19, 36, 0.98) 100%);
+      background: linear-gradient(160deg, rgba(30, 41, 59, 0.97) 0%, rgba(12, 19, 36, 0.99) 100%);
       border: 1px solid rgba(255, 255, 255, 0.18);
-      border-radius: 20px;
-      max-width: 560px;
+      border-radius: 16px;
+      max-width: 500px;
       width: 100%;
-      padding: 22px;
-      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.65);
-      max-height: 92vh;
-      overflow-y: auto;
+      padding: 14px 16px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65);
+      overflow: hidden;
     }
 
     .card h1 {
-      font-size: 1.5rem;
-      margin-bottom: 6px;
+      font-size: 1.2rem;
+      margin-bottom: 2px;
       letter-spacing: -0.01em;
     }
 
     .card p.sub {
       color: var(--muted);
-      font-size: 0.84rem;
-      margin-bottom: 14px;
-      line-height: 1.45;
+      font-size: 0.75rem;
+      margin-bottom: 10px;
     }
 
+    /* 2x2 Compact Mode Grid */
     .mode-grid {
       display: grid;
-      gap: 10px;
-      margin-bottom: 12px;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+      margin-bottom: 8px;
     }
 
     .mode-option {
-      background: rgba(9, 14, 28, 0.78);
+      background: rgba(9, 14, 28, 0.8);
       border: 1px solid rgba(255, 255, 255, 0.13);
-      border-radius: 12px;
-      padding: 12px 15px;
+      border-radius: 10px;
+      padding: 9px 10px;
       cursor: pointer;
       text-align: left;
-      transition: transform 0.12s ease, border-color 0.12s ease;
+      transition: border-color 0.12s ease, background 0.12s ease;
     }
 
     .mode-option:hover, .mode-option:active {
       border-color: var(--accent);
-      transform: translateY(-1px);
+      background: rgba(212, 255, 0, 0.06);
     }
 
     .mode-option h3 {
-      font-size: 0.94rem;
+      font-size: 0.8rem;
       color: var(--accent);
-      margin-bottom: 3px;
+      margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .mode-option p {
-      font-size: 0.78rem;
+      font-size: 0.68rem;
       color: #cbd5e1;
-      line-height: 1.35;
+      line-height: 1.2;
     }
 
-    /* QR Code Host Container */
+    /* Compact Inline QR Code Host Container */
     .qr-pairing-grid {
       display: flex;
-      flex-wrap: wrap;
-      gap: 16px;
+      gap: 12px;
       align-items: center;
-      justify-content: center;
-      background: rgba(9, 14, 28, 0.78);
-      padding: 14px;
-      border-radius: 14px;
-      border: 1px solid rgba(212, 255, 0, 0.3);
-      margin-top: 8px;
+      background: rgba(9, 14, 28, 0.82);
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(212, 255, 0, 0.35);
     }
 
     .qr-box {
       background: #ffffff;
-      padding: 10px;
-      border-radius: 12px;
+      padding: 6px;
+      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      flex-shrink: 0;
     }
 
     .qr-details {
       flex: 1;
-      min-width: 210px;
       text-align: left;
+      min-width: 0;
     }
 
     .room-code-box {
       font-family: monospace;
-      font-size: 1.55rem;
-      letter-spacing: 5px;
-      font-weight: 800;
+      font-size: 1.2rem;
+      letter-spacing: 4px;
+      font-weight: 900;
       color: var(--accent);
       background: #050811;
-      padding: 6px 12px;
-      border-radius: 8px;
+      padding: 3px 9px;
+      border-radius: 6px;
       display: inline-block;
-      margin: 6px 0;
       border: 1px solid rgba(212, 255, 0, 0.4);
     }
 
     .url-input {
       width: 100%;
-      padding: 6px 8px;
-      font-size: 0.72rem;
+      padding: 4px 7px;
+      font-size: 0.68rem;
       font-family: monospace;
       background: #050811;
-      color: #cbd5e1;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 6px;
-      margin-top: 4px;
+      color: #94a3b8;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 5px;
+      margin-top: 5px;
     }
 
     .input-code {
       font-family: monospace;
-      font-size: 1.4rem;
+      font-size: 1.2rem;
       letter-spacing: 4px;
       text-align: center;
-      padding: 8px;
-      width: 160px;
-      border-radius: 8px;
+      padding: 6px;
+      width: 130px;
+      border-radius: 6px;
       border: 1px solid rgba(255, 255, 255, 0.25);
       background: #050811;
       color: var(--accent);
@@ -422,43 +418,42 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      padding: 20px;
+      padding: 16px;
       text-align: center;
     }
 
     .grip-zone {
       flex: 1;
-      margin: 14px 0;
+      margin: 12px 0;
       border: 3px dashed rgba(212, 255, 0, 0.35);
-      border-radius: 24px;
+      border-radius: 20px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 18px;
-      transition: border-color 0.2s, background 0.2s;
+      padding: 14px;
       position: relative;
     }
 
     .controller-stance-pill {
-      font-size: 1.35rem;
+      font-size: 1.2rem;
       font-weight: 900;
-      padding: 8px 20px;
+      padding: 6px 18px;
       border-radius: 999px;
-      margin-bottom: 12px;
-      letter-spacing: 0.06em;
+      margin-bottom: 8px;
+      letter-spacing: 0.05em;
     }
 
     #iosPermissionOverlay {
       position: absolute;
       inset: 0;
       background: rgba(5, 8, 17, 0.95);
-      border-radius: 21px;
+      border-radius: 18px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 20px;
+      padding: 16px;
       z-index: 5;
       cursor: pointer;
     }
@@ -506,140 +501,131 @@
     <div class="sensor-row">
       <div style="display:flex; align-items:center; gap:8px;">
         <span class="dot" id="sensorDot"></span>
-        <span id="sensorStatusText">Control: 1:1 Mouse / Touch IK (Move to Waggle, Swipe to Swing)</span>
+        <span id="sensorStatusText">Control: 1:1 Mouse / Touch IK</span>
       </div>
       <div style="display:flex; align-items:center; gap:8px;">
         <span class="stance-badge" id="hudStanceBadge">STANCE: FOREHAND</span>
-        <span id="liveTelemetryText" style="color:var(--accent); font-family:monospace; font-size:0.75rem;">
+        <span id="liveTelemetryText" style="color:var(--accent); font-family:monospace; font-size:0.72rem;">
           Roll: 0° | Pitch: 0° | Force: 0.0
         </span>
       </div>
     </div>
     <div class="sensor-row">
-      <span style="font-size:0.7rem; color:var(--muted); width:68px;">Swing Force:</span>
+      <span style="font-size:0.68rem; color:var(--muted); width:64px;">Swing Force:</span>
       <div class="mini-meter-bg">
         <div class="mini-meter-fill" id="hudSwingBar"></div>
       </div>
     </div>
   </div>
 
-  <!-- Main Menu Modal -->
+  <!-- Compact Zero-Scroll Mode & QR Modal -->
   <div id="menuModal" class="overlay">
     <div class="card">
-      <h1>🎾 Grand Slam 3D — Real-Life 1st-Person IK</h1>
-      <p class="sub">Experience true <strong>Shoulder-to-Wrist Inverse Kinematics</strong>, racket-drop lag, low-to-high topspin follow-through, and 60Hz 1:1 motion tracking.</p>
+      <h1>🎾 Grand Slam 3D Tennis</h1>
+      <p class="sub">Choose a control mode below (scan QR for wireless phone racket):</p>
 
       <div class="mode-grid">
         <div class="mode-option" id="optHostPC">
-          <h3>🖥️ + 📱 Dual Screen (Scan QR Code to Pair Phone)</h3>
-          <p>Displays a scannable QR code on this screen. Scan it with your phone camera to stream live 60Hz 3D wrist & arm movements to the 1st-person racket!</p>
+          <h3>🖥️ + 📱 Dual Screen (QR)</h3>
+          <p>Scan QR with phone camera</p>
         </div>
 
         <div class="mode-option" id="optSinglePhone">
-          <h3>📱 Play on This Phone (1st-Person Motion Mode)</h3>
-          <p><strong>Tilt & rotate your wrist</strong> to move the 3D racket 1:1 in front of you, and <strong>swing through the ball</strong> with real follow-through.</p>
+          <h3>📱 Single-Phone Motion</h3>
+          <p>Tilt & swing on this phone</p>
         </div>
 
         <div class="mode-option" id="optPhoneController">
-          <h3>🎮 Enter 4-Letter Room Code Manually</h3>
-          <p>Already have a 4-letter code on your PC screen? Tap here to type it manually.</p>
+          <h3>🎮 Enter Room Code</h3>
+          <p>Type 4-letter code manually</p>
         </div>
 
         <div class="mode-option" id="optTouchMouse">
-          <h3>👆 1:1 Mouse / Touch IK Mode (Instant Play)</h3>
-          <p>Move your mouse (or drag) anywhere on screen to waggle, coil, and angle your 3D racket in real time. Flick or click to execute a full biomechanical swing!</p>
+          <h3>👆 Mouse / Touch IK</h3>
+          <p>Play instantly on screen</p>
         </div>
       </div>
 
-      <!-- PC Host QR Code & Room Code Panel -->
+      <!-- Compact PC Host QR Code Panel (Fits without scrolling) -->
       <div id="hostPanel" class="hidden">
         <div class="qr-pairing-grid">
           <div class="qr-box">
-            <canvas id="qrCanvas" width="165" height="165"></canvas>
+            <canvas id="qrCanvas" width="120" height="120"></canvas>
           </div>
           <div class="qr-details">
-            <div style="font-weight:700; color:var(--accent); font-size:0.9rem;">📷 Scan with Phone Camera</div>
-            <p style="font-size:0.76rem; color:#cbd5e1; margin-top:2px; line-height:1.35;">
-              Scanning opens the wireless racket and pairs to this 3D stadium automatically.
-            </p>
-            <div style="margin-top:6px;">
-              <span style="font-size:0.72rem; color:var(--muted);">Backup Room Code:</span><br />
+            <div style="font-weight:700; color:var(--accent); font-size:0.82rem;">📷 Scan with Phone</div>
+            <div style="display:flex; align-items:center; gap:8px; margin:4px 0;">
+              <span style="font-size:0.7rem; color:var(--muted);">Code:</span>
               <div class="room-code-box" id="hostRoomCode">----</div>
             </div>
-            <p id="hostWaitText" style="font-size:0.76rem; color:#38bdf8; font-weight:600;">
-              ⏳ Waiting for phone to scan...
+            <p id="hostWaitText" style="font-size:0.7rem; color:#38bdf8; font-weight:600;">
+              ⏳ Waiting for phone...
             </p>
+            <input type="text" id="qrBaseUrlInput" class="url-input" title="Edit base URL if on local LAN IP" />
           </div>
-        </div>
-
-        <div style="margin-top:8px; text-align:left;">
-          <label style="font-size:0.7rem; color:var(--muted);">
-            QR Link Base URL (edit if testing on local Wi-Fi IP):
-          </label>
-          <input type="text" id="qrBaseUrlInput" class="url-input" />
         </div>
       </div>
 
-      <!-- Manual Phone Join Panel -->
-      <div id="joinPanel" class="hidden" style="text-align:center; padding-top:10px; border-top:1px solid rgba(255,255,255,0.1);">
-        <p style="font-size:0.82rem; color:#cbd5e1; margin-bottom:8px;">Enter the 4-character Room Code from your PC:</p>
+      <!-- Compact Manual Phone Join Panel -->
+      <div id="joinPanel" class="hidden" style="text-align:center; padding-top:8px; border-top:1px solid rgba(255,255,255,0.1);">
         <div style="display:flex; gap:8px; justify-content:center; align-items:center;">
+          <span style="font-size:0.76rem; color:#cbd5e1;">Room Code:</span>
           <input type="text" id="joinCodeInput" class="input-code" maxlength="4" placeholder="ABCD" />
           <button class="btn btn-primary" id="btnConnectPeer">Connect</button>
         </div>
-        <p id="joinStatusText" style="font-size:0.78rem; color:var(--muted); margin-top:8px;"></p>
+        <p id="joinStatusText" style="font-size:0.72rem; color:var(--muted); margin-top:4px;"></p>
       </div>
     </div>
   </div>
 
   <!-- Dedicated Wireless Phone Racket Controller UI -->
   <div id="racketControllerUI" class="hidden">
-    <div style="background:rgba(255,255,255,0.06); padding:12px; border-radius:12px; display:flex; justify-content:space-between; align-items:center;">
+    <div style="background:rgba(255,255,255,0.06); padding:10px 12px; border-radius:10px; display:flex; justify-content:space-between; align-items:center;">
       <div style="text-align:left;">
-        <div style="font-weight:700; color:var(--accent);" id="controllerHeaderTitle">🎾 60Hz 3D WIRELESS RACKET</div>
-        <div style="font-size:0.74rem; color:var(--muted);" id="controllerConnSub">Connected to 3D Stadium</div>
+        <div style="font-weight:700; color:var(--accent); font-size:0.9rem;">🎾 60Hz WIRELESS RACKET</div>
+        <div style="font-size:0.72rem; color:var(--muted);" id="controllerConnSub">Connected to 3D Stadium</div>
       </div>
       <button class="btn" id="btnControllerHand">Hand: Right</button>
     </div>
 
     <div class="grip-zone" id="controllerGripZone">
       <div id="iosPermissionOverlay" class="hidden">
-        <div style="font-size:3rem; margin-bottom:10px;">📲</div>
-        <h2 style="color:var(--accent); margin-bottom:6px;">Tap to Activate Motion Sensors</h2>
-        <p style="font-size:0.85rem; color:#cbd5e1; max-width:260px; margin-bottom:16px;">
-          Your phone is paired! Tap anywhere here to grant 60Hz 3D gyroscope & accelerometer access.
+        <div style="font-size:2.4rem; margin-bottom:6px;">📲</div>
+        <h2 style="color:var(--accent); font-size:1.1rem; margin-bottom:4px;">Tap to Activate Motion Sensors</h2>
+        <p style="font-size:0.78rem; color:#cbd5e1; max-width:240px; margin-bottom:12px;">
+          Tap anywhere here to enable 60Hz 3D gyroscope & accelerometer tracking.
         </p>
-        <button class="btn btn-primary" style="padding:12px 24px; font-size:0.95rem;">Activate Racket Sensors</button>
+        <button class="btn btn-primary" style="padding:10px 20px;">Activate Sensors</button>
       </div>
 
       <div id="controllerStancePill" class="controller-stance-pill" style="background:rgba(0,240,255,0.2); color:#00f0ff; border:2px solid #00f0ff;">
         FOREHAND GRIP
       </div>
-      <p style="font-size:0.84rem; color:#cbd5e1; max-width:280px; margin-bottom:12px;">
-        Waggle or tilt your wrist to move the 1st-person racket in real time. Swing low-to-high through the ball!
+      <p style="font-size:0.78rem; color:#cbd5e1; max-width:260px; margin-bottom:10px;">
+        Tilt wrist to move racket 1:1. Swing low-to-high through the ball!
       </p>
 
-      <div style="width:85%; margin:10px 0;">
-        <div class="mini-meter-bg" style="height:16px;">
+      <div style="width:85%; margin:8px 0;">
+        <div class="mini-meter-bg" style="height:14px;">
           <div class="mini-meter-fill" id="controllerSwingBar"></div>
         </div>
       </div>
-      <div id="controllerDebugText" style="font-family:monospace; font-size:0.82rem; color:var(--accent);">
+      <div id="controllerDebugText" style="font-family:monospace; font-size:0.78rem; color:var(--accent);">
         Roll: 0° | Pitch: 0° | Force: 0.0
       </div>
 
-      <div style="display:flex; gap:10px; margin-top:20px; width:100%; justify-content:center;">
-        <button class="btn btn-primary" id="btnTapFH" style="padding:12px 18px; background:#00f0ff; border-color:#00f0ff;">
+      <div style="display:flex; gap:10px; margin-top:14px; width:100%; justify-content:center;">
+        <button class="btn btn-primary" id="btnTapFH" style="padding:10px 16px; background:#00f0ff; border-color:#00f0ff;">
           Swing FH
         </button>
-        <button class="btn btn-primary" id="btnTapBH" style="padding:12px 18px; background:#c084fc; border-color:#c084fc;">
+        <button class="btn btn-primary" id="btnTapBH" style="padding:10px 16px; background:#c084fc; border-color:#c084fc;">
           Swing BH
         </button>
       </div>
     </div>
 
     <div style="display:flex; gap:10px;">
-      <button class="btn" id="btnCenterRacket" style="flex:1;">Calibrate Neutral Grip</button>
+      <button class="btn" id="btnCenterRacket" style="flex:1;">Calibrate Grip</button>
       <button class="btn" id="btnExitController" style="flex:1;">Exit</button>
     </div>
   </div>
@@ -661,7 +647,7 @@
         this.init();
         if (!this.ctx) return;
         const now = this.ctx.currentTime;
-        const dur = 0.16;
+        const dur = 0.15;
         const bufSize = Math.floor(this.ctx.sampleRate * dur);
         const buf = this.ctx.createBuffer(1, bufSize, this.ctx.sampleRate);
         const data = buf.getChannelData(0);
@@ -673,10 +659,10 @@
         const filter = this.ctx.createBiquadFilter();
         filter.type = 'bandpass';
         filter.frequency.setValueAtTime(320, now);
-        filter.frequency.exponentialRampToValueAtTime(980 * Math.min(1.5, intensity), now + dur);
+        filter.frequency.exponentialRampToValueAtTime(960 * Math.min(1.5, intensity), now + dur);
 
         const gain = this.ctx.createGain();
-        gain.gain.setValueAtTime(0.24 * Math.min(1.4, intensity), now);
+        gain.gain.setValueAtTime(0.22 * Math.min(1.4, intensity), now);
         gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
 
         noise.connect(filter);
@@ -698,13 +684,13 @@
           osc.type = 'sawtooth';
           osc.frequency.setValueAtTime(250 * Math.min(1.4, power), now);
           osc.frequency.exponentialRampToValueAtTime(58, now + 0.12);
-          gain.gain.setValueAtTime(0.54, now);
+          gain.gain.setValueAtTime(0.52, now);
           gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
 
           ping.type = 'sine';
           ping.frequency.setValueAtTime(1240, now);
           ping.frequency.exponentialRampToValueAtTime(640, now + 0.085);
-          pingGain.gain.setValueAtTime(0.2, now);
+          pingGain.gain.setValueAtTime(0.18, now);
           pingGain.gain.exponentialRampToValueAtTime(0.001, now + 0.085);
         } else if (quality === 'AWKWARD') {
           osc.type = 'sine';
@@ -763,30 +749,13 @@
           const gain = this.ctx.createGain();
           osc.type = 'triangle';
           osc.frequency.setValueAtTime(f, now + idx * 0.08);
-          gain.gain.setValueAtTime(0.16, now + idx * 0.08);
+          gain.gain.setValueAtTime(0.15, now + idx * 0.08);
           gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.24);
           osc.connect(gain);
           gain.connect(this.ctx.destination);
           osc.start(now + idx * 0.08);
           osc.stop(now + idx * 0.08 + 0.24);
         });
-
-        const dur = win ? 0.95 : 0.45;
-        const bufSize = Math.floor(this.ctx.sampleRate * dur);
-        const buf = this.ctx.createBuffer(1, bufSize, this.ctx.sampleRate);
-        const data = buf.getChannelData(0);
-        for (let i = 0; i < bufSize; i++) {
-          const env = Math.sin((i / bufSize) * Math.PI);
-          data[i] = (Math.random() * 2 - 1) * env * (win ? 0.2 : 0.08);
-        }
-        const noise = this.ctx.createBufferSource();
-        noise.buffer = buf;
-        const filter = this.ctx.createBiquadFilter();
-        filter.type = 'bandpass';
-        filter.frequency.value = 1100;
-        noise.connect(filter);
-        filter.connect(this.ctx.destination);
-        noise.start(now);
       }
     }
 
@@ -814,17 +783,15 @@
       eventsReceived: 0,
       handedness: 'RIGHT',
       currentStance: 'FOREHAND',
-      // 3-Axis Orientation (Roll = gamma, Pitch = beta, Yaw = alpha)
-      tiltGamma: 12,      // Wrist Roll (-55 to +55 deg)
-      tiltBeta: 25,       // Racket Pitch / Elevation (-45 to +70 deg)
-      tiltAlpha: 0,       // Horizontal Arm Sweep Yaw (-45 to +45 deg)
+      tiltGamma: 12,
+      tiltBeta: 20,
+      tiltAlpha: 0,
       rawGamma: 0,
       rawBeta: 30,
       rawAlpha: 0,
       gammaOffset: 0,
       betaOffset: 30,
       alphaOffset: 0,
-      // Instantaneous Linear & Rotational Velocity for Live 1:1 Racket Waggle
       accelX: 0,
       accelY: 0,
       accelZ: 0,
@@ -893,7 +860,7 @@
 
       if (!window.isSecureContext) {
         showSecurityNotice(
-          '<strong>⚠️ Chrome Blocked Motion Sensors (Not HTTPS):</strong> Open this page over <strong>https://</strong> or <strong>localhost</strong> so Android Chrome enables accelerometer access.'
+          '<strong>⚠️ HTTPS Required for Sensors:</strong> Open over <strong>https://</strong> or <strong>localhost</strong> so Chrome enables motion sensors.'
         );
         document.getElementById('sensorDot').classList.add('warn');
         document.getElementById('sensorStatusText').textContent = 'Sensors Blocked (Requires HTTPS)';
@@ -903,10 +870,7 @@
       try {
         if (needsIosPermissionGesture()) {
           const p1 = await DeviceMotionEvent.requestPermission();
-          if (p1 !== 'granted') {
-            showSecurityNotice('<strong>⚠️ Motion Permission Denied:</strong> Allow Motion Sensors in Safari settings.');
-            return false;
-          }
+          if (p1 !== 'granted') return false;
         }
         if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
           await DeviceOrientationEvent.requestPermission();
@@ -920,7 +884,7 @@
       setTimeout(() => {
         if (motionState.eventsReceived === 0) {
           showSecurityNotice(
-            '<strong>⚠️ No Sensor Data Detected:</strong> In Android Chrome, open <strong>Menu (⋮) → Settings → Site settings → Motion sensors</strong> and turn it <strong>ON</strong>.'
+            '<strong>⚠️ Sensors Off:</strong> Enable <strong>Chrome Menu (⋮) → Settings → Site settings → Motion sensors</strong>.'
           );
           document.getElementById('sensorDot').classList.remove('live');
           document.getElementById('sensorDot').classList.add('warn');
@@ -1005,9 +969,7 @@
           const rg = rot.gamma || 0;
           const rotMag = Math.sqrt(ra * ra + rb * rb + rg * rg);
           rotBoost = rotMag / 22;
-          if (Math.abs(rg) > 40) {
-            signedLateral += (rg / 25);
-          }
+          if (Math.abs(rg) > 40) signedLateral += (rg / 25);
         }
 
         const combinedForce = Math.max(linearMag, rotBoost);
@@ -1028,7 +990,7 @@
               motionState.samplingSwing = false;
               motionState.lastSwingTime = performance.now();
 
-              const finalPower = Math.min(1.55, Math.max(0.9, motionState.peakForce / threshold));
+              const finalPower = Math.min(1.5, Math.max(0.9, motionState.peakForce / threshold));
               const aimRatio = motionState.peakGammaAtImpact / 40;
               const detectedStroke = classifySwingStroke(
                 motionState.peakGammaAtImpact,
@@ -1111,7 +1073,7 @@
     }
 
     /******************************************************************
-     * 3. QR CODE GENERATOR & 60Hz WEBRTC (PEERJS) AUTO-PAIRING
+     * 3. COMPACT QR GENERATOR & 60Hz WEBRTC (PEERJS) AUTO-PAIRING
      ******************************************************************/
     let peer = null;
     let peerConn = null;
@@ -1137,7 +1099,7 @@
         qrInstance = new QRious({
           element: qrCanvas,
           value: fullUrl,
-          size: 165,
+          size: 120,
           level: 'M',
           background: '#ffffff',
           foreground: '#050811'
@@ -1164,7 +1126,7 @@
       baseInput.value = getCleanBaseUrl();
       updateHostQrFromInput();
 
-      document.getElementById('hostWaitText').textContent = '⏳ Waiting for phone to scan QR...';
+      document.getElementById('hostWaitText').textContent = '⏳ Waiting for phone...';
 
       if (peer) peer.destroy();
       peer = new Peer(`MOTION-TENNIS-${currentRoomCode}`);
@@ -1172,7 +1134,7 @@
       peer.on('connection', (conn) => {
         peerConn = conn;
         document.getElementById('sensorDot').classList.add('live');
-        document.getElementById('sensorStatusText').textContent = `60Hz Wireless Racket Connected (${currentRoomCode})`;
+        document.getElementById('sensorStatusText').textContent = `60Hz Wireless Racket (${currentRoomCode})`;
         document.getElementById('menuModal').classList.add('hidden');
         sfx.playCrowdApplause(true);
 
@@ -1236,10 +1198,9 @@
         const conn = peer.connect(`MOTION-TENNIS-${cleanCode}`);
         conn.on('open', () => {
           peerConn = conn;
-          document.getElementById('controllerConnSub').textContent = `Connected to Room ${cleanCode} (60Hz 3D Live) ✅`;
+          document.getElementById('controllerConnSub').textContent = `Connected to Room ${cleanCode} (60Hz Live) ✅`;
           if (navigator.vibrate) navigator.vibrate([45, 40, 70]);
 
-          // Stream full 6-DOF IMU state at ~60fps (16ms) for 1:1 real-life racket movement
           setInterval(() => {
             if (peerConn && peerConn.open) {
               peerConn.send({
@@ -1279,7 +1240,7 @@
     scene.background = new THREE.Color(0x060b18);
     scene.fog = new THREE.FogExp2(0x060b18, 0.00095);
 
-    const camera = new THREE.PerspectiveCamera(54, window.innerWidth / window.innerHeight, 0.4, 1400);
+    const camera = new THREE.PerspectiveCamera(58, window.innerWidth / window.innerHeight, 0.4, 1400);
     const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -1289,7 +1250,6 @@
     renderer.toneMappingExposure = 1.18;
     webglContainer.appendChild(renderer.domElement);
 
-    // --- Procedural Grip Texture for Pro Racket ---
     function createLeatherGripTexture() {
       const c = document.createElement('canvas');
       c.width = 128;
@@ -1305,10 +1265,6 @@
         g.lineTo(c.width, y + 28);
         g.stroke();
       }
-      g.fillStyle = 'rgba(255,255,255,0.06)';
-      for (let i = 0; i < 150; i++) {
-        g.fillRect(Math.random() * c.width, Math.random() * c.height, 2, 2);
-      }
       const tex = new THREE.CanvasTexture(c);
       tex.wrapS = THREE.RepeatWrapping;
       tex.wrapT = THREE.RepeatWrapping;
@@ -1316,11 +1272,9 @@
     }
     const gripTexture = createLeatherGripTexture();
 
-    // --- HYPER-DETAILED 3D CARBON-FIBER TENNIS RACKET ---
     function createProCarbonRacket(primaryColorHex = 0x00f0ff, accentColorHex = 0xd4ff00) {
       const racket = new THREE.Group();
 
-      // 1. Flared Octagonal Butt Cap & Handle (Origin y=0 is at the grip)
       const buttCap = new THREE.Mesh(
         new THREE.CylinderGeometry(0.46, 0.54, 0.6, 8),
         new THREE.MeshStandardMaterial({ color: 0x090d16, roughness: 0.4 })
@@ -1356,7 +1310,6 @@
         emissiveIntensity: 0.22
       });
 
-      // 2. Sculpted Dual-Shaft Aerodynamic Y-Throat
       const shaftGeo = new THREE.CylinderGeometry(0.24, 0.30, 4.3, 12);
       const leftShaft = new THREE.Mesh(shaftGeo, carbonMat);
       leftShaft.position.set(-1.15, 7.6, 0);
@@ -1375,7 +1328,6 @@
       throatBridge.position.set(0, 9.1, 0);
       racket.add(leftShaft, rightShaft, throatBridge);
 
-      // 3. Elliptical Pro Racket Head Frame + Top Bumper Guard
       const headCenterY = 14.3;
       const rx = 3.65;
       const ry = 5.15;
@@ -1400,7 +1352,6 @@
       hoopGroup.add(bumperArc);
       racket.add(hoopGroup);
 
-      // 4. Individual 3D Main & Cross Strings + Red Tour Stencil
       const stringGroup = new THREE.Group();
       stringGroup.position.y = headCenterY;
       const stringMat = new THREE.MeshBasicMaterial({
@@ -1435,7 +1386,6 @@
       }
       racket.add(stringGroup);
 
-      // Tip & Sweetspot reference nodes for 3D Swoosh Ribbon Trail
       const tipMarker = new THREE.Object3D();
       tipMarker.position.set(0, headCenterY + ry, 0);
       const throatMarker = new THREE.Object3D();
@@ -1445,7 +1395,6 @@
       return { group: racket, frameMat: neonFrameMat, tipMarker, throatMarker };
     }
 
-    // --- ANATOMICAL 3D TENNIS ATHLETE (For Far AI & 3rd-Person Action Cam) ---
     function createProAthlete(kitPrimaryHex, kitShortsHex, skinHex, isNearPlayer = false) {
       const root = new THREE.Group();
 
@@ -1617,7 +1566,6 @@
       return { root, torsoPivot, headGroup, rightArm, leftArm, racketObj, legL, legR, jerseyMat };
     }
 
-    // --- REAL-LIFE FIRST-PERSON BIOMECHANICAL IK RIG (Shoulder -> Elbow -> Wrist + Left Toss Arm + Swoosh Ribbon) ---
     function createFirstPersonBiomechanicalRig() {
       const fpvGroup = new THREE.Group();
 
@@ -1626,7 +1574,6 @@
       const wristbandMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.35 });
       const stripeMat = new THREE.MeshStandardMaterial({ color: 0x00f0ff, roughness: 0.3 });
 
-      // Helper to orient a cylindrical limb segment between two 3D points A and B
       function createSegmentMesh(radTop, radBot, material) {
         const geo = new THREE.CylinderGeometry(radTop, radBot, 1, 16);
         const mesh = new THREE.Mesh(geo, material);
@@ -1635,7 +1582,6 @@
         return mesh;
       }
 
-      // 1. Dominant Racket Arm Segments (Driven by 2-Bone Analytical IK)
       const upperArmSleeve = createSegmentMesh(1.05, 0.92, sleeveMat);
       const upperArmBicep = createSegmentMesh(0.86, 0.72, skinMat);
       const elbowSphere = new THREE.Mesh(new THREE.SphereGeometry(0.74, 14, 14), skinMat);
@@ -1644,7 +1590,6 @@
       const wristbandMesh = createSegmentMesh(0.60, 0.58, wristbandMat);
       const wristbandStripe = createSegmentMesh(0.615, 0.615, stripeMat);
 
-      // 2. Articulated Wrist & Hand Holding Pro Carbon Racket
       const wristPivot = new THREE.Group();
       fpvGroup.add(wristPivot);
 
@@ -1653,7 +1598,6 @@
       palm.position.set(0, 1.8, 0.15);
       wristPivot.add(palm);
 
-      // Sculpted curled fingers + index trigger finger on grip
       for (let f = 0; f < 4; f++) {
         const knuckle = new THREE.Mesh(
           new THREE.TorusGeometry(0.45, 0.135, 8, 14, Math.PI * 1.35),
@@ -1672,13 +1616,11 @@
       proRacket.group.position.set(0, 0, 0);
       wristPivot.add(proRacket.group);
 
-      // 3. Non-Dominant Off-Hand (Cradles racket throat in Ready Stance & Tosses Ball on Serve!)
       const offArmForearm = createSegmentMesh(0.66, 0.50, skinMat);
       const offArmWristband = createSegmentMesh(0.56, 0.54, wristbandMat);
       const offHandSphere = new THREE.Mesh(new THREE.SphereGeometry(0.60, 14, 14), skinMat);
       fpvGroup.add(offHandSphere);
 
-      // 4. 3D Volumetric Racket Swoosh Trail Ribbon
       const SWOOSH_SEGMENTS = 18;
       const swooshGeo = new THREE.BufferGeometry();
       const swooshPositions = new Float32Array(SWOOSH_SEGMENTS * 2 * 3);
@@ -1722,7 +1664,6 @@
       };
     }
 
-    // Helper: Position & orient a cylinder mesh from 3D point pA to pB
     const _upAxis = new THREE.Vector3(0, 1, 0);
     const _segDir = new THREE.Vector3();
     function alignLimbSegment(mesh, pA, pB, startFrac = 0.0, endFrac = 1.0) {
@@ -1736,13 +1677,11 @@
       mesh.quaternion.setFromUnitVectors(_upAxis, _segDir);
     }
 
-    // Analytical 2-Bone Inverse Kinematics Solver (Shoulder -> Elbow -> Wrist)
     function solveArmIK(shoulderPos, wristPos, lenUpper, lenForearm, poleHintDir) {
       const sw = new THREE.Vector3().subVectors(wristPos, shoulderPos);
       const d = Math.min(sw.length(), (lenUpper + lenForearm) * 0.995);
       const swNorm = sw.clone().normalize();
 
-      // Law of cosines for shoulder angle
       const cosAngle = THREE.MathUtils.clamp(
         (lenUpper * lenUpper + d * d - lenForearm * lenForearm) / (2 * lenUpper * d),
         -1,
@@ -1750,7 +1689,6 @@
       );
       const angle = Math.acos(cosAngle);
 
-      // Orthogonal elbow bend plane toward anatomical pole vector (down and outward)
       const ortho = new THREE.Vector3().crossVectors(swNorm, poleHintDir);
       if (ortho.lengthSq() < 0.0001) ortho.set(0, 0, 1);
       ortho.normalize();
@@ -1763,13 +1701,11 @@
       return elbowPos;
     }
 
-    // Cubic Hermite / Catmull-Rom interpolation for smooth 4-phase biomechanical swing trajectories
     function sampleSwingWaypoints(waypoints, t) {
       const n = waypoints.length - 1;
       const scaled = THREE.MathUtils.clamp(t, 0, 1) * n;
       const idx = Math.min(n - 1, Math.floor(scaled));
       const frac = scaled - idx;
-      // Smoothstep easing per segment for natural acceleration through contact
       const u = frac * frac * (3 - 2 * frac);
       const w0 = waypoints[idx];
       const w1 = waypoints[idx + 1];
@@ -1782,7 +1718,6 @@
       };
     }
 
-    // --- Procedural Court, Net & Ball Textures ---
     function createAcrylicCourtTexture() {
       const c = document.createElement('canvas');
       c.width = 1024;
@@ -1811,13 +1746,6 @@
         }
       }
 
-      for (let i = 0; i < 40000; i++) {
-        const x = Math.random() * c.width;
-        const y = Math.random() * c.height;
-        g.fillStyle = Math.random() > 0.5 ? 'rgba(255,255,255,0.035)' : 'rgba(0,0,0,0.045)';
-        g.fillRect(x, y, 2, 2);
-      }
-
       g.strokeStyle = '#f8fafc';
       g.lineWidth = 10;
       g.strokeRect(padX, padY, innerW, innerH);
@@ -1844,14 +1772,6 @@
       g.moveTo(c.width / 2, padY + innerH);
       g.lineTo(c.width / 2, padY + innerH - 28);
       g.stroke();
-
-      g.save();
-      g.font = '900 42px system-ui, sans-serif';
-      g.fillStyle = 'rgba(255, 255, 255, 0.16)';
-      g.textAlign = 'center';
-      g.fillText('GRAND SLAM ARENA', c.width / 2, padY - 70);
-      g.fillText('GRAND SLAM ARENA', c.width / 2, padY + innerH + 100);
-      g.restore();
 
       const tex = new THREE.CanvasTexture(c);
       tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
@@ -1904,10 +1824,6 @@
       const g = c.getContext('2d');
       g.fillStyle = '#d4ff00';
       g.fillRect(0, 0, c.width, c.height);
-      for (let i = 0; i < 4000; i++) {
-        g.fillStyle = Math.random() > 0.5 ? 'rgba(255,255,255,0.18)' : 'rgba(140,180,0,0.22)';
-        g.fillRect(Math.random() * c.width, Math.random() * c.height, 2, 2);
-      }
       g.strokeStyle = '#ffffff';
       g.lineWidth = 6;
       g.beginPath();
@@ -1920,7 +1836,6 @@
       return new THREE.CanvasTexture(c);
     }
 
-    // --- Build Lighting ---
     const hemiLight = new THREE.HemisphereLight(0xdbeafe, 0x0f172a, 0.75);
     scene.add(hemiLight);
 
@@ -1943,7 +1858,6 @@
     rimLight.position.set(-90, 140, -160);
     scene.add(rimLight);
 
-    // --- Court Surface ---
     const courtMesh = new THREE.Mesh(
       new THREE.PlaneGeometry(160, 310),
       new THREE.MeshStandardMaterial({
@@ -1956,7 +1870,6 @@
     courtMesh.receiveShadow = true;
     scene.add(courtMesh);
 
-    // --- 3D Net & Posts ---
     const netWidth3D = to3DX(166) * 2;
     const netHeight3D = to3DY(16);
     const netGeo = new THREE.PlaneGeometry(netWidth3D, netHeight3D, 32, 1);
@@ -1994,7 +1907,6 @@
     rightPost.position.x = netWidth3D / 2;
     scene.add(leftPost, rightPost);
 
-    // --- FULL 360° GRAND SLAM STADIUM ARENA + 1,600 INSTANCED SPECTATORS ---
     let crowdInstancedMesh = null;
     const crowdBasePositions = [];
     let crowdCheerTimer = 0;
@@ -2166,22 +2078,13 @@
       const canopy = new THREE.Mesh(new THREE.BoxGeometry(6.5, 0.7, 9), new THREE.MeshStandardMaterial({ color: 0xf8fafc }));
       canopy.position.set(-66, 32, 0);
       chairGroup.add(leg1, leg2, seat, umpTorso, umpHead, canopy);
-      chairGroup.traverse(o => { if (o.isMesh) o.castShadow = true; });
       stadium.add(chairGroup);
-
-      const benchMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.5 });
-      const bench1 = new THREE.Mesh(new THREE.BoxGeometry(4, 3.2, 18), benchMat);
-      bench1.position.set(-68, 1.6, 24);
-      const bench2 = bench1.clone();
-      bench2.position.z = -24;
-      stadium.add(bench1, bench2);
 
       scene.add(stadium);
     }
 
     build360GrandSlamStadium();
 
-    // --- Instantiate Athletes & First-Person Biomechanical Rig ---
     const player3D = createProAthlete(0x0284c7, 0x0f172a, 0xe0ac69, true);
     scene.add(player3D.root);
 
@@ -2190,14 +2093,13 @@
 
     const fpvRig = createFirstPersonBiomechanicalRig();
 
-    // --- 3D Fuzzy Felt Tennis Ball, Trail & Court Bounce Marks ---
     const ballMesh = new THREE.Mesh(
       new THREE.SphereGeometry(1.55, 24, 24),
       new THREE.MeshStandardMaterial({
         map: createTennisBallTexture(),
         roughness: 0.65,
         emissive: 0xccff00,
-        emissiveIntensity: 0.2
+        emissiveIntensity: 0.22
       })
     );
     ballMesh.castShadow = true;
@@ -2253,7 +2155,7 @@
     }
 
     /******************************************************************
-     * 5. TENNIS PHYSICS & REAL-LIFE 4-PHASE BIOMECHANICAL SWING STATE
+     * 5. CONTROLLED ON-SCREEN TENNIS PHYSICS & 4-PHASE SWING STATE
      ******************************************************************/
     const COURT = { widthNear: 360, netZ: 50, netHeight: 16 };
     let cameraShake = 0;
@@ -2265,7 +2167,7 @@
       pGames: 0,
       aiGames: 0,
       waitingForServe: true,
-      bannerText: 'MOVE TO WAGGLE RACKET • SWING OR SWIPE TO SERVE!',
+      bannerText: 'MOVE TO WAGGLE • SWING OR SWIPE TO SERVE!',
       shotFeedback: '',
       shotFeedbackSub: '',
       shotFeedbackColor: '#d4ff00',
@@ -2277,27 +2179,26 @@
       prevX: 0,
       targetX: 0,
       z: 4,
-      swingProgress: 0,      // 0 = Not swinging, 0.01 -> 1.0 = Full 4-phase biomechanical swing
-      activeSwingType: 'FOREHAND', // 'FOREHAND', 'BACKHAND', or 'SERVE'
+      swingProgress: 0,
+      activeSwingType: 'FOREHAND',
       swingCooldown: 0,
       racketSide: 1,
       awkwardReachTimer: 0,
       stridePhase: 0,
-      // Spring-damper physical state for 1st-person wrist & racket head inertia
       wristPos: new THREE.Vector3(3.2, -3.5, -6.5),
       wristVel: new THREE.Vector3(0, 0, 0),
       racketRot: new THREE.Vector3(0.35, -0.2, -0.35),
       racketRotVel: new THREE.Vector3(0, 0, 0)
     };
-    const ai = { x: 0, prevX: 0, z: 96, speed: 2.35, swingAnim: 0, stridePhase: 0 };
+    const ai = { x: 0, prevX: 0, z: 96, speed: 2.4, swingAnim: 0, stridePhase: 0 };
     const ball = {
       x: 15,
-      y: 24,
+      y: 22,
       z: 8,
       vx: 0,
       vy: 0,
       vz: 0,
-      gravity: 0.23,
+      gravity: 0.22,
       bounces: 0,
       lastHitter: null,
       trail: [],
@@ -2309,22 +2210,22 @@
       ball.bounces = 0;
       ball.trail = [];
       ball.isBoosted = false;
-      player.x = 20;
-      player.targetX = 20;
-      ai.x = -20;
+      player.x = 18;
+      player.targetX = 18;
+      ai.x = -18;
       const serveOffset = motionState.handedness === 'RIGHT' ? 6 : -6;
       ball.x = player.x + serveOffset;
-      ball.y = 20;
+      ball.y = 19;
       ball.z = player.z + 5;
       ball.vx = 0; ball.vy = 0; ball.vz = 0;
-      scoreState.bannerText = 'MOVE TO WAGGLE RACKET • SWING OR SWIPE TO SERVE!';
+      scoreState.bannerText = 'MOVE TO WAGGLE • SWING OR SWIPE TO SERVE!';
     }
 
     function showFeedback(text, subText = '', color = '#d4ff00') {
       scoreState.shotFeedback = text;
       scoreState.shotFeedbackSub = subText;
       scoreState.shotFeedbackColor = color;
-      scoreState.shotFeedbackTimer = 64;
+      scoreState.shotFeedbackTimer = 60;
     }
 
     function triggerPlayerSwing(power = 1.0, aimOverride = null, explicitStroke = null) {
@@ -2334,25 +2235,31 @@
       motionState.currentStance = swingStroke;
       player.racketSide = getSideForStroke(swingStroke);
       player.swingProgress = 0.01;
-      player.swingCooldown = 22;
+      player.swingCooldown = 20;
       sfx.playSwoosh(power);
       updateTelemetryUI();
 
-      // 1. Serving (Executes Trophy Pose Overhead Smash Animation)
+      // 1. Serving (Controlled Arc that stays well inside the screen)
       if (scoreState.waitingForServe) {
         player.activeSwingType = 'SERVE';
         scoreState.waitingForServe = false;
-        ball.y = 33;
-        const aimAngle = aimOverride !== null ? aimOverride : (motionState.tiltGamma / 40);
-        ball.vx = (-0.8 + aimAngle * 1.1) * 1.7;
-        ball.vz = 1.75 * Math.min(1.35, Math.max(0.95, power));
-        ball.vy = 4.5;
+        ball.y = 26;
+        const aimAngle = THREE.MathUtils.clamp(
+          aimOverride !== null ? aimOverride : (motionState.tiltGamma / 40),
+          -0.85,
+          0.85
+        );
+        const targetServeX = THREE.MathUtils.clamp(-25 + aimAngle * 65, -95, 95);
+        const serveFrames = Math.round(54 / Math.min(1.3, Math.max(0.95, power)));
+        ball.vz = (82 - ball.z) / serveFrames;
+        ball.vx = (targetServeX - ball.x) / serveFrames;
+        ball.vy = (0.5 * ball.gravity * serveFrames) - (ball.y / serveFrames) + 0.35;
         ball.bounces = 0;
         ball.lastHitter = 'PLAYER';
         ball.isBoosted = power > 1.2;
-        cameraShake = 0.85;
+        cameraShake = 0.7;
         sfx.playHit(power, 'CLEAN');
-        spawnHitSparks3D(ball.x, ball.y, ball.z, 0xd4ff00, 18);
+        spawnHitSparks3D(ball.x, ball.y, ball.z, 0xd4ff00, 16);
         showFeedback(
           power > 1.25 ? '⚡ POWER SERVE!' : 'CLEAN SERVE!',
           'OVERHEAD PRONATION MOTION',
@@ -2363,43 +2270,45 @@
 
       player.activeSwingType = swingStroke;
 
-      // 2. Returning Ball with Forehand / Backhand Side Matching
+      // 2. Returning Ball (Clamped target bounds & controlled loft so ball never flies off-screen)
       const dz = ball.z - player.z;
       const dx = Math.abs(ball.x - player.x);
 
-      if (ball.vz < 0 && dz > -15 && dz < 48 && dx < 148) {
+      if (ball.vz < 0 && dz > -16 && dz < 50 && dx < 150) {
         const requiredStroke = getRequiredStrokeForBall(ball.x, player.x);
         const isMatchedStroke = (swingStroke === requiredStroke);
 
-        const timingOffset = (dz - 14) / 22;
-        const tiltAim = aimOverride !== null ? aimOverride : (motionState.tiltGamma / 40);
+        const timingOffset = THREE.MathUtils.clamp((dz - 14) / 22, -1, 1);
+        const tiltAim = THREE.MathUtils.clamp(
+          aimOverride !== null ? aimOverride : (motionState.tiltGamma / 40),
+          -1,
+          1
+        );
 
         let effectivePower = power;
-        let targetX = (tiltAim * 125) - (timingOffset * 50);
-        let extraLoft = 0.52;
+        let targetX = (tiltAim * 95) - (timingOffset * 38);
+        let extraLoft = 0.42;
 
         if (isMatchedStroke) {
           effectivePower = power * 1.2;
-          if (swingStroke === 'BACKHAND') {
-            targetX *= 1.12;
-          }
-          targetX = Math.max(-134, Math.min(134, targetX));
+          if (swingStroke === 'BACKHAND') targetX *= 1.08;
+          targetX = THREE.MathUtils.clamp(targetX, -108, 108);
           ball.isBoosted = true;
-          cameraShake = 1.2;
+          cameraShake = 1.0;
           sfx.playHit(effectivePower, 'CLEAN');
 
           const strokeColor = swingStroke === 'FOREHAND' ? '#00f0ff' : '#c084fc';
           const sparkHex = swingStroke === 'FOREHAND' ? 0x00f0ff : 0xc084fc;
-          spawnHitSparks3D(ball.x, ball.y, ball.z, sparkHex, 22);
+          spawnHitSparks3D(ball.x, ball.y, ball.z, sparkHex, 20);
           showFeedback(
             `⚡ CLEAN ${swingStroke}!`,
             '1.2x LOW-TO-HIGH TOPSPIN BONUS',
             strokeColor
           );
         } else {
-          effectivePower = power * 0.72;
-          targetX = targetX * 0.45;
-          extraLoft = 1.45;
+          effectivePower = power * 0.78;
+          targetX = THREE.MathUtils.clamp(targetX * 0.45, -75, 75);
+          extraLoft = 0.78; // Controlled defensive arc that stays inside top of screen
           ball.isBoosted = false;
           player.awkwardReachTimer = 28;
           sfx.playHit(effectivePower, 'AWKWARD');
@@ -2407,15 +2316,16 @@
 
           showFeedback(
             '⚠️ AWKWARD REACH!',
-            `Swung ${swingStroke} on ${requiredStroke} side (0.72x)`,
+            `Swung ${swingStroke} on ${requiredStroke} side (0.78x)`,
             '#f59e0b'
           );
         }
 
-        const flightFrames = 56 / Math.min(1.5, Math.max(0.72, effectivePower));
-        ball.vz = (94 - ball.z) / flightFrames;
+        const flightFrames = 56 / Math.min(1.45, Math.max(0.78, effectivePower));
+        ball.vz = (92 - ball.z) / flightFrames;
         ball.vx = (targetX - ball.x) / flightFrames;
         ball.vy = (0.5 * ball.gravity * flightFrames) - (ball.y / flightFrames) + extraLoft;
+        ball.vy = Math.min(3.8, ball.vy); // Cap max vertical climb speed
 
         ball.bounces = 0;
         ball.lastHitter = 'PLAYER';
@@ -2473,14 +2383,12 @@
 
     hudCanvas.addEventListener('pointermove', (e) => {
       if (motionState.eventsReceived === 0 && (!peerConn || !peerConn.open)) {
-        const normX = (e.clientX / window.innerWidth) * 2 - 1;   // -1 (Left) to +1 (Right)
-        const normY = 1 - (e.clientY / window.innerHeight) * 2;  // -1 (Low) to +1 (High)
+        const normX = (e.clientX / window.innerWidth) * 2 - 1;
+        const normY = 1 - (e.clientY / window.innerHeight) * 2;
 
-        player.targetX = normX * 145;
-        // Map 2D mouse position to 3D wrist roll, pitch, and arm sweep so moving the cursor feels like holding the racket!
-        motionState.tiltGamma = normX * 38;
-        motionState.tiltBeta = normY * 35;
-        motionState.tiltAlpha = -normX * 32;
+        motionState.tiltGamma = normX * 36;
+        motionState.tiltBeta = normY * 32;
+        motionState.tiltAlpha = -normX * 28;
 
         updateStanceFromWrist(motionState.tiltGamma);
         updateTelemetryUI();
@@ -2514,13 +2422,23 @@
     });
 
     /******************************************************************
-     * 7. BIOMECHANICAL 1ST-PERSON IK SOLVER & 3D SCENE SYNC
+     * 7. FRUSTUM-CLAMPED SMART CAMERA & BIOMECHANICAL IK SOLVER
      ******************************************************************/
+    function updateCameraFovForAspect() {
+      const aspect = window.innerWidth / window.innerHeight;
+      const camMode = CAMERA_MODES[cameraModeIdx].id;
+      const baseFov = camMode === 'FPV' ? 62 : (camMode === 'ACTION' ? 54 : 46);
+      // Automatically widen vertical FOV on narrow/portrait screens so horizontal court never clips
+      const narrowScreenBoost = aspect < 1.35 ? (1.35 - aspect) * 28 : 0;
+      camera.fov = Math.min(86, baseFov + narrowScreenBoost);
+      camera.aspect = aspect;
+      camera.updateProjectionMatrix();
+    }
+
     function onWindowResize() {
       const w = window.innerWidth;
       const h = window.innerHeight;
-      camera.aspect = w / h;
-      camera.updateProjectionMatrix();
+      updateCameraFovForAspect();
       renderer.setSize(w, h);
       hudCanvas.width = w;
       hudCanvas.height = h;
@@ -2531,10 +2449,8 @@
     function updatePhysics() {
       if (player.swingCooldown > 0) player.swingCooldown--;
       if (player.swingProgress > 0) {
-        player.swingProgress += 0.036; // Smooth 28-frame biomechanical swing curve
-        if (player.swingProgress >= 1.0) {
-          player.swingProgress = 0;
-        }
+        player.swingProgress += 0.036;
+        if (player.swingProgress >= 1.0) player.swingProgress = 0;
       }
       if (player.awkwardReachTimer > 0) player.awkwardReachTimer--;
       if (ai.swingAnim > 0) ai.swingAnim = Math.max(0, ai.swingAnim - 0.075);
@@ -2546,16 +2462,15 @@
       ai.prevX = ai.x;
 
       if (!scoreState.waitingForServe) {
-        const desiredStanceOffset = -player.racketSide * 14;
-        player.targetX = (ball.x * 0.82) + desiredStanceOffset;
+        const desiredStanceOffset = -player.racketSide * 13;
+        player.targetX = (ball.x * 0.88) + desiredStanceOffset;
       }
 
-      player.x += (player.targetX - player.x) * 0.18;
-      player.x = Math.max(-160, Math.min(160, player.x));
+      player.x += (player.targetX - player.x) * 0.22;
+      player.x = Math.max(-135, Math.min(135, player.x));
 
       if (scoreState.waitingForServe) {
         const rightFactor = motionState.handedness === 'RIGHT' ? 1 : -1;
-        // In Serve Ready Stance, the ball rests in the player's non-dominant toss hand!
         ball.x = player.x - rightFactor * 4.5;
         ball.y = 19.5 + Math.sin(performance.now() * 0.005) * 1.2;
         ball.z = player.z + 5.2;
@@ -2566,6 +2481,13 @@
       ball.y += ball.vy;
       ball.z += ball.vz;
       ball.vy -= ball.gravity;
+
+      // Hard ceiling clamp so ball never arcs above the camera viewport
+      if (ball.y > 35) {
+        ball.y = 35;
+        if (ball.vy > 0) ball.vy *= 0.3;
+      }
+
       ballMesh.rotation.x += ball.vz * 0.16;
       ballMesh.rotation.z -= ball.vx * 0.16;
 
@@ -2584,18 +2506,18 @@
         }
       }
 
-      // Ground Bounce
+      // Ground Bounce (Controlled rebound height so ball stays on screen)
       if (ball.y <= 0) {
         ball.y = 0;
-        ball.vy = Math.abs(ball.vy) * 0.75;
+        ball.vy = Math.min(3.1, Math.abs(ball.vy) * 0.72);
         ball.bounces++;
         sfx.playBounce();
         spawnBounceMark3D(ball.x, ball.z, ball.isBoosted);
 
         if (ball.bounces === 1) {
-          const outWide = Math.abs(ball.x) > 152;
-          const outLong = (ball.lastHitter === 'PLAYER' && ball.z > 104) ||
-                          (ball.lastHitter === 'AI' && ball.z < -4);
+          const outWide = Math.abs(ball.x) > 148;
+          const outLong = (ball.lastHitter === 'PLAYER' && ball.z > 103) ||
+                          (ball.lastHitter === 'AI' && ball.z < -3);
           if (outWide || outLong) {
             showFeedback('OUT!', 'HAWKEYE CALL: OUT', '#ef4444');
             awardPoint(ball.lastHitter === 'PLAYER' ? 'AI' : 'PLAYER');
@@ -2608,20 +2530,25 @@
         }
       }
 
-      if (ball.z < -22) { awardPoint(ball.bounces >= 1 ? 'AI' : 'PLAYER'); return; }
-      if (ball.z > 122) { awardPoint(ball.bounces >= 1 ? 'PLAYER' : 'AI'); return; }
+      // Promptly award point before ball drifts off-screen past baselines or sidelines
+      if (ball.z < -10) { awardPoint(ball.bounces >= 1 ? 'AI' : 'PLAYER'); return; }
+      if (ball.z > 112) { awardPoint(ball.bounces >= 1 ? 'PLAYER' : 'AI'); return; }
+      if (Math.abs(ball.x) > 158) {
+        awardPoint(ball.lastHitter === 'PLAYER' ? 'AI' : 'PLAYER');
+        return;
+      }
 
-      // AI Opponent
+      // AI Opponent (Returns within comfortable court bounds)
       if (ball.vz > 0) {
         const diff = ball.x - ai.x;
         ai.x += Math.sign(diff) * Math.min(Math.abs(diff), ai.speed);
-        if (ball.z >= 88 && ball.z <= 99 && Math.abs(ball.x - ai.x) < 54) {
+        if (ball.z >= 88 && ball.z <= 99 && Math.abs(ball.x - ai.x) < 56) {
           ai.swingAnim = 1.0;
-          const cornerChoice = (Math.random() > 0.5 ? 1 : -1) * (55 + Math.random() * 65);
+          const cornerChoice = (Math.random() > 0.5 ? 1 : -1) * (40 + Math.random() * 52);
           const frames = 58;
-          ball.vz = (6 - ball.z) / frames;
+          ball.vz = (7 - ball.z) / frames;
           ball.vx = (cornerChoice - ball.x) / frames;
-          ball.vy = (0.5 * ball.gravity * frames) - (ball.y / frames) + 0.5;
+          ball.vy = (0.5 * ball.gravity * frames) - (ball.y / frames) + 0.42;
           ball.bounces = 0;
           ball.isBoosted = false;
           ball.lastHitter = 'AI';
@@ -2633,7 +2560,6 @@
       }
     }
 
-    // Update First-Person Arm IK, Spring-Damper Wrist Lag & 4-Phase Biomechanical Splines
     function updateFirstPersonBiomechanicalRig(now) {
       const handSign = motionState.handedness === 'RIGHT' ? 1 : -1;
       const isFH = motionState.currentStance === 'FOREHAND';
@@ -2641,70 +2567,49 @@
       const pitchRad = (motionState.tiltBeta * Math.PI) / 180;
       const yawRad = (motionState.tiltAlpha * Math.PI) / 180;
 
-      // 1. Define Anatomical Shoulder Positions in Camera Space (Eyes are at 0,0,0)
       const domShoulder = new THREE.Vector3(handSign * 3.8, -4.5, 1.4);
-      const offShoulder = new THREE.Vector3(-handSign * 3.8, -4.5, 1.4);
-
       let targetWristPos = new THREE.Vector3();
-      let targetRot = new THREE.Vector3(); // Euler X (pitch), Y (yaw), Z (roll/cant)
+      let targetRot = new THREE.Vector3();
       let showOffHand = false;
       let offHandPos = new THREE.Vector3();
 
       if (player.swingProgress > 0) {
-        // --- ACTIVE 4-PHASE BIOMECHANICAL SWING TRAJECTORY ---
         const t = player.swingProgress;
 
         if (player.activeSwingType === 'SERVE') {
-          // OVERHEAD SERVE BIOMECHANICS: Trophy Pose -> Backscratch Drop -> High Overhead Pronation Smash -> Across Left Hip
           const serveWaypoints = [
             { pos: new THREE.Vector3(handSign * 2.2, -3.4, -6.5), rotX: -0.35, rotY: 0.0, rotZ: -handSign * 0.25 },
-            // Phase 1: Trophy Pose & Racket Drop behind head
             { pos: new THREE.Vector3(handSign * 4.5, 1.8, -3.5), rotX: 0.95, rotY: -handSign * 0.6, rotZ: -handSign * 1.35 },
-            // Phase 2: High Overhead Reach + Pronation Snap at Contact
             { pos: new THREE.Vector3(handSign * 1.4, 4.6, -8.8), rotX: -0.55, rotY: 0.0, rotZ: handSign * 0.15 },
-            // Phase 3: Follow-through down across opposite hip
             { pos: new THREE.Vector3(-handSign * 4.2, -5.2, -6.8), rotX: -1.35, rotY: handSign * 0.85, rotZ: handSign * 1.4 },
-            // Phase 4: Recovery to Ready Stance
             { pos: new THREE.Vector3(handSign * 2.8, -3.6, -6.8), rotX: -0.35, rotY: -handSign * 0.2, rotZ: -handSign * 0.35 }
           ];
           const sample = sampleSwingWaypoints(serveWaypoints, t);
           targetWristPos.copy(sample.pos);
           targetRot.set(sample.rotX, sample.rotY, sample.rotZ);
 
-          // Left Toss Arm reaches up during early serve toss
           if (t < 0.45) {
             showOffHand = true;
             const tossArc = Math.sin((t / 0.45) * Math.PI);
             offHandPos.set(-handSign * 2.2, -2.5 + tossArc * 6.5, -7.2);
           }
         } else if (player.activeSwingType === 'FOREHAND') {
-          // FOREHAND BIOMECHANICS: Unit Turn & Racket Drop -> Butt-Cap Lag -> Low-to-High Topspin Whip -> Windshield-Wiper Over Left Shoulder
           const fhWaypoints = [
-            // Start from current live stance
             { pos: new THREE.Vector3(handSign * 4.5, -3.8, -6.2), rotX: -0.25, rotY: -handSign * 0.45, rotZ: -handSign * 0.55 },
-            // Phase 1: Unit Turn & Low Racket Drop ("Pat the Dog")
             { pos: new THREE.Vector3(handSign * 6.8, -5.6, -4.2), rotX: 0.42, rotY: -handSign * 1.05, rotZ: -handSign * 1.28 },
-            // Phase 2: Forward Contact Point in front of lead hip (Square stringbed + upward brush)
             { pos: new THREE.Vector3(handSign * 2.4, -2.2, -10.6), rotX: -0.48, rotY: handSign * 0.15, rotZ: -handSign * 0.92 },
-            // Phase 3: Windshield-Wiper Topspin Pronation & High Over-Opposite-Shoulder Finish
             { pos: new THREE.Vector3(-handSign * 5.2, 1.4, -6.8), rotX: -0.65, rotY: handSign * 1.25, rotZ: handSign * 1.55 },
-            // Phase 4: Smooth Recovery to Ready Position
             { pos: new THREE.Vector3(handSign * 3.2, -3.6, -6.8), rotX: -0.35, rotY: -handSign * 0.25, rotZ: -handSign * 0.4 }
           ];
           const sample = sampleSwingWaypoints(fhWaypoints, t);
           targetWristPos.copy(sample.pos);
           targetRot.set(sample.rotX, sample.rotY, sample.rotZ);
         } else {
-          // BACKHAND BIOMECHANICS: Coiled Hip Takeback -> Low-to-High Drive -> Classic High Wide Extension Follow-Through
           const bhWaypoints = [
             { pos: new THREE.Vector3(-handSign * 3.8, -3.8, -6.2), rotX: -0.25, rotY: handSign * 0.55, rotZ: handSign * 0.65 },
-            // Phase 1: Deep Coiled Backhand Takeback at Left Hip
             { pos: new THREE.Vector3(-handSign * 6.4, -5.4, -4.5), rotX: 0.35, rotY: handSign * 1.15, rotZ: handSign * 1.32 },
-            // Phase 2: Out-in-Front Contact Zone (Knuckles leading, low-to-high brush)
             { pos: new THREE.Vector3(-handSign * 1.8, -2.1, -10.8), rotX: -0.52, rotY: -handSign * 0.1, rotZ: handSign * 0.95 },
-            // Phase 3: High Wide Backhand Extension Finish
             { pos: new THREE.Vector3(handSign * 5.6, 2.2, -7.2), rotX: -0.45, rotY: -handSign * 1.15, rotZ: -handSign * 1.15 },
-            // Phase 4: Smooth Recovery
             { pos: new THREE.Vector3(-handSign * 2.8, -3.6, -6.8), rotX: -0.35, rotY: handSign * 0.3, rotZ: handSign * 0.45 }
           ];
           const sample = sampleSwingWaypoints(bhWaypoints, t);
@@ -2712,33 +2617,22 @@
           targetRot.set(sample.rotX, sample.rotY, sample.rotZ);
         }
       } else {
-        // --- 1:1 LIVE CONTINUOUS MOTION TRACKING (WAGGLE, UNIT TURN, PITCH & ROLL) ---
         const idleBreath = Math.sin(now * 0.005) * 0.16;
-
-        // Horizontal hand sweep across body driven by wrist roll + yaw + live lateral acceleration
         const stanceBaseX = isFH ? (handSign * 3.3) : (-handSign * 2.6);
         const liveSweepX = THREE.MathUtils.clamp(
           stanceBaseX + (rollRad * 3.8) - (yawRad * 2.6) + (motionState.accelX * 0.14),
           -6.8,
           6.8
         );
-
-        // Vertical hand height driven by phone pitch + vertical acceleration
         const liveHeightY = THREE.MathUtils.clamp(
           -3.6 + (pitchRad * 2.8) + (motionState.accelY * 0.12) + idleBreath,
           -6.2,
           2.5
         );
-
-        // Depth (Z): Coils slightly closer to body when turned wide for a takeback
         const coilDepthZ = -6.8 + Math.abs(liveSweepX) * 0.22 - Math.min(1.8, motionState.accelMag * 0.1);
 
         targetWristPos.set(liveSweepX, liveHeightY, coilDepthZ);
 
-        // Natural Racket Orientation:
-        // rotX = Forward tilt toward net + pitch angle
-        // rotY = Unit-turn angle across body
-        // rotZ = Racket head cant + forearm pronation/supination
         const cantAngle = isFH
           ? (-handSign * 0.42 - rollRad * 0.85)
           : (handSign * 0.48 - rollRad * 0.85);
@@ -2749,18 +2643,15 @@
           cantAngle
         );
 
-        // Show Left Off-Hand either holding the ball on Serve or cradling the racket throat in Ready Stance
         if (scoreState.waitingForServe) {
           showOffHand = true;
           offHandPos.set(-handSign * 2.2, -3.1 + idleBreath * 1.4, -6.5);
         } else if (Math.abs(liveSweepX) < 3.4) {
           showOffHand = true;
-          // Cradles the racket throat
           offHandPos.set(liveSweepX - handSign * 1.1, liveHeightY + 2.8, coilDepthZ - 1.2);
         }
       }
 
-      // 2. Apply Spring-Damper Physics for Realistic Racket Weight & Wrist Lag
       const posStiffness = player.swingProgress > 0 ? 0.48 : 0.28;
       const posDamping = 0.52;
       player.wristVel.x = (player.wristVel.x + (targetWristPos.x - player.wristPos.x) * posStiffness) * posDamping;
@@ -2768,7 +2659,6 @@
       player.wristVel.z = (player.wristVel.z + (targetWristPos.z - player.wristPos.z) * posStiffness) * posDamping;
       player.wristPos.add(player.wristVel);
 
-      // Rotational spring-damper with inertial lag from linear wrist velocity (racket head trails handle on acceleration!)
       const lagPitch = -player.wristVel.y * 0.28;
       const lagRoll = player.wristVel.x * 0.35;
       const rotStiffness = player.swingProgress > 0 ? 0.45 : 0.25;
@@ -2779,7 +2669,6 @@
       player.racketRotVel.z = (player.racketRotVel.z + ((targetRot.z + lagRoll) - player.racketRot.z) * rotStiffness) * rotDamping;
       player.racketRot.add(player.racketRotVel);
 
-      // 3. Solve 2-Bone Analytical IK for Dominant Arm (Shoulder -> Elbow -> Wrist)
       const poleHint = new THREE.Vector3(handSign * 1.2, -1.0, 0.6).normalize();
       const elbowPos = solveArmIK(domShoulder, player.wristPos, 4.8, 5.0, poleHint);
 
@@ -2791,7 +2680,6 @@
       alignLimbSegment(fpvRig.wristbandMesh, elbowPos, player.wristPos, 0.80, 0.96);
       alignLimbSegment(fpvRig.wristbandStripe, elbowPos, player.wristPos, 0.86, 0.90);
 
-      // Position & Orient Wrist + Racket
       fpvRig.wristPivot.position.copy(player.wristPos);
       fpvRig.wristPivot.rotation.set(
         player.racketRot.x,
@@ -2803,7 +2691,6 @@
       fpvRig.proRacket.frameMat.color.setHex(isFH ? 0x00f0ff : 0xc084fc);
       fpvRig.proRacket.frameMat.emissive.setHex(isFH ? 0x00f0ff : 0xc084fc);
 
-      // 4. Update Off-Hand (Left Arm) Visibility & Segment Alignment
       fpvRig.offArmForearm.visible = showOffHand;
       fpvRig.offArmWristband.visible = showOffHand;
       fpvRig.offHandSphere.visible = showOffHand;
@@ -2814,7 +2701,6 @@
         fpvRig.offHandSphere.position.copy(offHandPos);
       }
 
-      // 5. Update 3D Volumetric Racket Swoosh Ribbon in World Space
       fpvRig.fpvGroup.updateMatrixWorld(true);
       const tipWorld = new THREE.Vector3();
       const throatWorld = new THREE.Vector3();
@@ -2842,6 +2728,83 @@
       }
     }
 
+    // Active Frustum Clamping: Ensures the 3D ball never leaves the safe screen frame in any camera mode
+    const smoothedLookTarget = new THREE.Vector3(0, 10, -25);
+    const ndcTestVec = new THREE.Vector3();
+
+    function applySmartCameraWithFrustumGuard(camMode, px3, pz3, bx3, by3, bz3, aix3, shakeX, shakeY, now) {
+      let desiredCamPos = new THREE.Vector3();
+      let desiredLook = new THREE.Vector3();
+
+      if (camMode === 'FPV') {
+        // Place FPV camera slightly behind the contact plane (pz3 + 15) so incoming balls never pass behind the lens
+        const safeBackZ = Math.max(pz3 + 15, bz3 + 11.5);
+        desiredCamPos.set(
+          THREE.MathUtils.lerp(px3, bx3, 0.35) + shakeX * 0.4,
+          18.2 + Math.sin(now * 0.007) * 0.16 + shakeY * 0.4,
+          safeBackZ
+        );
+        camera.position.lerp(desiredCamPos, 0.28);
+
+        if (scoreState.waitingForServe) {
+          desiredLook.set(px3 * 0.35 + aix3 * 0.25, 11.5, -35);
+        } else {
+          desiredLook.set(
+            THREE.MathUtils.lerp(0, bx3, 0.65),
+            THREE.MathUtils.clamp(THREE.MathUtils.lerp(10, by3, 0.62), 6, 32),
+            THREE.MathUtils.lerp(-30, Math.min(safeBackZ - 16, bz3), 0.35)
+          );
+        }
+      } else if (camMode === 'ACTION') {
+        const safeBackZ = Math.max(pz3 + 48, bz3 + 26);
+        desiredCamPos.set(
+          THREE.MathUtils.lerp(px3 * 0.55, bx3 * 0.45, 0.4) + shakeX,
+          36 + shakeY,
+          safeBackZ
+        );
+        camera.position.lerp(desiredCamPos, 0.16);
+        desiredLook.set(
+          THREE.MathUtils.lerp(px3 * 0.25, bx3, 0.52),
+          THREE.MathUtils.clamp(THREE.MathUtils.lerp(10, by3, 0.5), 6, 28),
+          THREE.MathUtils.lerp(-18, bz3, 0.25)
+        );
+      } else {
+        // TV Broadcast Cam
+        const safeBackZ = Math.max(176, bz3 + 45);
+        desiredCamPos.set(
+          THREE.MathUtils.lerp(px3 * 0.22, bx3 * 0.3, 0.4) + shakeX,
+          72 + shakeY,
+          safeBackZ
+        );
+        camera.position.lerp(desiredCamPos, 0.12);
+        desiredLook.set(
+          THREE.MathUtils.lerp(0, bx3, 0.42),
+          THREE.MathUtils.clamp(THREE.MathUtils.lerp(8, by3, 0.45), 5, 26),
+          THREE.MathUtils.lerp(-8, bz3, 0.22)
+        );
+      }
+
+      smoothedLookTarget.lerp(desiredLook, 0.25);
+      camera.lookAt(smoothedLookTarget);
+      camera.updateMatrixWorld();
+
+      // Frustum Guard: Check if the ball's projected screen coordinates approach the screen edges
+      if (!scoreState.waitingForServe) {
+        ndcTestVec.set(bx3, by3, bz3).project(camera);
+        const maxAbsX = Math.abs(ndcTestVec.x);
+        const maxAbsY = Math.abs(ndcTestVec.y);
+
+        if (maxAbsX > 0.70 || maxAbsY > 0.64 || ndcTestVec.z > 0.98) {
+          // Steer look target directly toward the ball so it stays locked inside the safe screen frame
+          const correctionStrength = Math.min(0.85, Math.max(maxAbsX - 0.65, maxAbsY - 0.58) * 1.8);
+          const ballWorldPos = new THREE.Vector3(bx3, by3, Math.min(camera.position.z - 12, bz3));
+          smoothedLookTarget.lerp(ballWorldPos, correctionStrength);
+          camera.lookAt(smoothedLookTarget);
+          camera.updateMatrixWorld();
+        }
+      }
+    }
+
     const crowdDummy = new THREE.Object3D();
     function sync3DScene() {
       const now = performance.now();
@@ -2855,7 +2818,7 @@
       fpvRig.swooshMesh.visible = isFPV;
       player3D.root.visible = !isFPV;
 
-      // 1. Sync Third-Person Near Athlete (for Action Cam & Broadcast Cam)
+      // 1. Sync Third-Person Near Athlete
       const px3 = to3DX(player.x);
       const pz3 = to3DZ(player.z);
       const splitStepBounce = Math.abs(Math.sin(now * 0.008)) * 0.45;
@@ -2914,44 +2877,23 @@
         }
       }
 
-      // 4. Camera Positioning & First-Person Biomechanical Rig
+      // 4. Smart Frustum-Clamped Camera Tracking + First-Person Rig Attachment
       const shakeX = (Math.random() - 0.5) * cameraShake * 1.8;
       const shakeY = (Math.random() - 0.5) * cameraShake * 1.8;
 
-      if (camMode === 'FPV') {
-        const targetCamX = px3;
-        camera.position.x += (targetCamX - camera.position.x) * 0.24 + shakeX * 0.45;
-        camera.position.y = 17.5 + Math.sin(now * 0.007) * 0.18 + shakeY * 0.45;
-        camera.position.z = pz3 + 4.8;
+      applySmartCameraWithFrustumGuard(camMode, px3, pz3, bx3, by3, bz3, aix3, shakeX, shakeY, now);
 
-        const lookX = (bx3 * 0.32) + (aix3 * 0.15);
-        const lookY = Math.max(8, Math.min(24, by3 * 0.42 + 6));
-        camera.lookAt(lookX, lookY, -38);
-
-        // Attach First-Person Rig to Camera Pose & Solve Real-Time Biomechanical IK
+      if (isFPV) {
         fpvRig.fpvGroup.position.copy(camera.position);
         fpvRig.fpvGroup.quaternion.copy(camera.quaternion);
         updateFirstPersonBiomechanicalRig(now);
 
-        // If waiting for serve in FPV, place the tennis ball directly in the player's visible left toss hand!
         if (scoreState.waitingForServe && fpvRig.offHandSphere.visible) {
           fpvRig.fpvGroup.updateMatrixWorld(true);
           const handWorld = new THREE.Vector3();
           fpvRig.offHandSphere.getWorldPosition(handWorld);
           ballMesh.position.set(handWorld.x, handWorld.y + 1.4, handWorld.z - 0.4);
         }
-      } else if (camMode === 'ACTION') {
-        const camTargetX = px3 * 0.65;
-        camera.position.x += (camTargetX - camera.position.x) * 0.12 + shakeX;
-        camera.position.y = 34 + shakeY;
-        camera.position.z = pz3 + 42;
-        camera.lookAt(px3 * 0.3, 12, -20);
-      } else {
-        const camTargetX = px3 * 0.28;
-        camera.position.x += (camTargetX - camera.position.x) * 0.08 + shakeX;
-        camera.position.y = 66 + shakeY;
-        camera.position.z = 168;
-        camera.lookAt(px3 * 0.12, 8, -10);
       }
 
       // 5. Animate Stadium Crowd Cheering on Points
@@ -3005,8 +2947,8 @@
         tempVec.copy(ballMesh.position);
         tempVec.project(camera);
         if (tempVec.z < 1) {
-          const sx = (tempVec.x * 0.5 + 0.5) * w;
-          const sy = (-(tempVec.y * 0.5) + 0.5) * h;
+          const sx = THREE.MathUtils.clamp((tempVec.x * 0.5 + 0.5) * w, 36, w - 36);
+          const sy = THREE.MathUtils.clamp((-(tempVec.y * 0.5) + 0.5) * h, 50, h - 50);
 
           const reqStroke = getRequiredStrokeForBall(ball.x, player.x);
           const ringColor = reqStroke === 'FOREHAND' ? '#00f0ff' : '#c084fc';
@@ -3040,21 +2982,21 @@
         hudCtx.strokeStyle = 'rgba(212, 255, 0, 0.45)';
         hudCtx.lineWidth = 1.5;
         hudCtx.beginPath();
-        hudCtx.roundRect(w / 2 - 210, h * 0.16, 420, 42, 12);
+        hudCtx.roundRect(w / 2 - 205, h * 0.15, 410, 40, 10);
         hudCtx.fill();
         hudCtx.stroke();
 
         hudCtx.fillStyle = '#d4ff00';
         hudCtx.font = '800 13px system-ui, sans-serif';
         hudCtx.textAlign = 'center';
-        hudCtx.fillText(scoreState.bannerText, w / 2, h * 0.16 + 26);
+        hudCtx.fillText(scoreState.bannerText, w / 2, h * 0.15 + 25);
         hudCtx.restore();
       }
 
       if (scoreState.shotFeedbackTimer > 0) {
         hudCtx.save();
-        const yAnim = h * 0.36 - (64 - scoreState.shotFeedbackTimer) * 0.55;
-        hudCtx.font = '900 28px system-ui, sans-serif';
+        const yAnim = h * 0.35 - (60 - scoreState.shotFeedbackTimer) * 0.5;
+        hudCtx.font = '900 26px system-ui, sans-serif';
         hudCtx.textAlign = 'center';
         hudCtx.fillStyle = scoreState.shotFeedbackColor;
         hudCtx.shadowColor = 'rgba(0, 0, 0, 0.9)';
@@ -3062,9 +3004,9 @@
         hudCtx.fillText(scoreState.shotFeedback, w / 2, yAnim);
 
         if (scoreState.shotFeedbackSub) {
-          hudCtx.font = '800 13px system-ui, sans-serif';
+          hudCtx.font = '800 12px system-ui, sans-serif';
           hudCtx.fillStyle = '#f8fafc';
-          hudCtx.fillText(scoreState.shotFeedbackSub, w / 2, yAnim + 22);
+          hudCtx.fillText(scoreState.shotFeedbackSub, w / 2, yAnim + 20);
         }
         hudCtx.restore();
       }
@@ -3086,6 +3028,7 @@
     document.getElementById('btnCameraMode').addEventListener('click', (e) => {
       cameraModeIdx = (cameraModeIdx + 1) % CAMERA_MODES.length;
       e.target.textContent = `🎥 Cam: ${CAMERA_MODES[cameraModeIdx].name}`;
+      updateCameraFovForAspect();
     });
 
     function toggleHandedness() {
