@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Grand Slam 3D Tennis — Fixed Ballistic Serve & 1st-Person IK</title>
+  <title>Grand Slam 3D Tennis — Realistic Match Pace & 1st-Person IK</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
@@ -139,7 +139,7 @@
       gap: 6px;
       flex-wrap: wrap;
       justify-content: flex-end;
-      max-width: 65vw;
+      max-width: 68vw;
     }
 
     .btn {
@@ -149,7 +149,7 @@
       border: 1px solid var(--glass-border);
       padding: 7px 11px;
       border-radius: 8px;
-      font-size: 0.75rem;
+      font-size: 0.74rem;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.15s ease;
@@ -165,6 +165,13 @@
       background: rgba(0, 240, 255, 0.16);
       border-color: rgba(0, 240, 255, 0.5);
       color: #00f0ff;
+      font-weight: 800;
+    }
+
+    .btn-pace {
+      background: rgba(212, 255, 0, 0.14);
+      border-color: rgba(212, 255, 0, 0.45);
+      color: var(--accent);
       font-weight: 800;
     }
 
@@ -485,6 +492,7 @@
     </div>
 
     <div class="controls-bar">
+      <button class="btn btn-pace" id="btnPaceMode" title="Adjust Rally Speed">⏱️ Pace: Realistic</button>
       <button class="btn btn-cam" id="btnCameraMode" title="Switch Camera View">🎥 Cam: 1st Person FPV</button>
       <button class="btn" id="btnHandedness">Hand: Right</button>
       <button class="btn" id="btnCalibrate">Center Racket</button>
@@ -501,7 +509,7 @@
     <div class="sensor-row">
       <div style="display:flex; align-items:center; gap:8px;">
         <span class="dot" id="sensorDot"></span>
-        <span id="sensorStatusText">Control: 1:1 Mouse / Touch IK</span>
+        <span id="sensorStatusText">Control: Set Wrist Stance Once, Wait for Bounce & Swing</span>
       </div>
       <div style="display:flex; align-items:center; gap:8px;">
         <span class="stance-badge" id="hudStanceBadge">STANCE: FOREHAND</span>
@@ -522,7 +530,7 @@
   <div id="menuModal" class="overlay">
     <div class="card">
       <h1>🎾 Grand Slam 3D Tennis</h1>
-      <p class="sub">Choose a control mode below (scan QR for wireless phone racket):</p>
+      <p class="sub">Realistic Match Cadence — Choose a control mode below:</p>
 
       <div class="mode-grid">
         <div class="mode-option" id="optHostPC">
@@ -601,8 +609,8 @@
       <div id="controllerStancePill" class="controller-stance-pill" style="background:rgba(0,240,255,0.2); color:#00f0ff; border:2px solid #00f0ff;">
         FOREHAND GRIP
       </div>
-      <p style="font-size:0.78rem; color:#cbd5e1; max-width:260px; margin-bottom:10px;">
-        Tilt wrist to move racket 1:1. Swing low-to-high through the ball!
+      <p style="font-size:0.78rem; color:#cbd5e1; max-width:265px; margin-bottom:10px;">
+        <strong>No need to wave continuously:</strong> Set your wrist to Forehand or Backhand once, wait for the ball to bounce on your side, then swing!
       </p>
 
       <div style="width:85%; margin:8px 0;">
@@ -647,7 +655,7 @@
         this.init();
         if (!this.ctx) return;
         const now = this.ctx.currentTime;
-        const dur = 0.15;
+        const dur = 0.18;
         const bufSize = Math.floor(this.ctx.sampleRate * dur);
         const buf = this.ctx.createBuffer(1, bufSize, this.ctx.sampleRate);
         const data = buf.getChannelData(0);
@@ -658,8 +666,8 @@
         noise.buffer = buf;
         const filter = this.ctx.createBiquadFilter();
         filter.type = 'bandpass';
-        filter.frequency.setValueAtTime(320, now);
-        filter.frequency.exponentialRampToValueAtTime(960 * Math.min(1.5, intensity), now + dur);
+        filter.frequency.setValueAtTime(300, now);
+        filter.frequency.exponentialRampToValueAtTime(920 * Math.min(1.5, intensity), now + dur);
 
         const gain = this.ctx.createGain();
         gain.gain.setValueAtTime(0.22 * Math.min(1.4, intensity), now);
@@ -762,8 +770,16 @@
     const sfx = new SoundEngine();
 
     /******************************************************************
-     * 2. 6-DOF / 3-AXIS IMU & BIOMECHANICAL SENSOR ENGINE
+     * 2. MATCH PACE PRESETS & 6-DOF BIOMECHANICAL SENSOR ENGINE
      ******************************************************************/
+    // Match Pace Presets: Controls flight frames (N) so rallies mimic real-life tennis cadence
+    const PACE_PRESETS = [
+      { label: 'Realistic', serveFrames: 68, rallyFrames: 76, aiFrames: 82 }, // ~1.35s to bounce + 0.55s post-bounce (~1.9s per shot)
+      { label: 'Relaxed',   serveFrames: 84, rallyFrames: 94, aiFrames: 102 }, // ~2.3s per shot for effortless setup
+      { label: 'Tour Fast', serveFrames: 52, rallyFrames: 58, aiFrames: 62 }   // ~1.4s per shot brisk pro rally
+    ];
+    let paceIdx = 0; // Default to Realistic Tennis Pace
+
     const SENSITIVITY_PRESETS = [
       { label: 'High', threshold: 7.5 },
       { label: 'Normal', threshold: 11.5 },
@@ -823,13 +839,14 @@
       }
     }
 
+    // Hysteresis deadzone of 4° so holding the phone comfortably doesn't jitter between FH and BH
     function updateStanceFromWrist(gammaDeg) {
       if (motionState.handedness === 'RIGHT') {
-        if (gammaDeg > 2) motionState.currentStance = 'FOREHAND';
-        else if (gammaDeg < -2) motionState.currentStance = 'BACKHAND';
+        if (gammaDeg > 4) motionState.currentStance = 'FOREHAND';
+        else if (gammaDeg < -4) motionState.currentStance = 'BACKHAND';
       } else {
-        if (gammaDeg < -2) motionState.currentStance = 'FOREHAND';
-        else if (gammaDeg > 2) motionState.currentStance = 'BACKHAND';
+        if (gammaDeg < -4) motionState.currentStance = 'FOREHAND';
+        else if (gammaDeg > 4) motionState.currentStance = 'BACKHAND';
       }
       player.racketSide = getSideForStroke(motionState.currentStance);
     }
@@ -838,7 +855,7 @@
       const rightHandFactor = motionState.handedness === 'RIGHT' ? 1 : -1;
       const wristScore = (gammaAtImpact / 25) * rightHandFactor;
       const impulseScore = (signedLateralImpulse / 14) * rightHandFactor;
-      const combinedScore = (wristScore * 0.7) + (impulseScore * 0.3);
+      const combinedScore = (wristScore * 0.72) + (impulseScore * 0.28);
       return combinedScore >= -0.05 ? 'FOREHAND' : 'BACKHAND';
     }
 
@@ -921,9 +938,14 @@
           const calBeta = (e.beta || 0) - motionState.betaOffset;
           const calAlpha = wrapAngle180((e.alpha || 0) - motionState.alphaOffset);
 
-          motionState.tiltGamma = Math.max(-60, Math.min(60, calGamma));
-          motionState.tiltBeta = Math.max(-50, Math.min(65, calBeta));
-          motionState.tiltAlpha = Math.max(-55, Math.min(55, calAlpha));
+          // Low-pass smoothing filter so holding the phone steady feels rock-solid without micro-tremors
+          const targetG = Math.max(-60, Math.min(60, calGamma));
+          const targetB = Math.max(-50, Math.min(65, calBeta));
+          const targetA = Math.max(-55, Math.min(55, calAlpha));
+
+          motionState.tiltGamma += (targetG - motionState.tiltGamma) * 0.35;
+          motionState.tiltBeta += (targetB - motionState.tiltBeta) * 0.35;
+          motionState.tiltAlpha += (targetA - motionState.tiltAlpha) * 0.35;
 
           updateStanceFromWrist(motionState.tiltGamma);
           updateTelemetryUI();
@@ -958,9 +980,10 @@
           motionState.prevGz = accG.z;
         }
 
-        motionState.accelX = ax;
-        motionState.accelY = ay;
-        motionState.accelZ = az;
+        // Ignore tiny hand tremors (< 1.5 m/s²) so racket stays calm when player is waiting for the ball
+        motionState.accelX = Math.abs(ax) > 1.5 ? ax : 0;
+        motionState.accelY = Math.abs(ay) > 1.5 ? ay : 0;
+        motionState.accelZ = Math.abs(az) > 1.5 ? az : 0;
 
         let rotBoost = 0;
         if (rot && (rot.alpha !== null || rot.beta !== null || rot.gamma !== null)) {
@@ -979,7 +1002,7 @@
         const threshold = SENSITIVITY_PRESETS[sensitivityIdx].threshold;
         const now = performance.now();
 
-        if (combinedForce > threshold && now - motionState.lastSwingTime > 300) {
+        if (combinedForce > threshold && now - motionState.lastSwingTime > 380) {
           if (!motionState.samplingSwing) {
             motionState.samplingSwing = true;
             motionState.peakForce = combinedForce;
@@ -990,7 +1013,7 @@
               motionState.samplingSwing = false;
               motionState.lastSwingTime = performance.now();
 
-              const finalPower = Math.min(1.5, Math.max(0.9, motionState.peakForce / threshold));
+              const finalPower = Math.min(1.45, Math.max(0.9, motionState.peakForce / threshold));
               const aimRatio = motionState.peakGammaAtImpact / 40;
               const detectedStroke = classifySwingStroke(
                 motionState.peakGammaAtImpact,
@@ -1134,7 +1157,7 @@
       peer.on('connection', (conn) => {
         peerConn = conn;
         document.getElementById('sensorDot').classList.add('live');
-        document.getElementById('sensorStatusText').textContent = `60Hz Wireless Racket (${currentRoomCode})`;
+        document.getElementById('sensorStatusText').textContent = `Wireless Racket Connected (${currentRoomCode})`;
         document.getElementById('menuModal').classList.add('hidden');
         sfx.playCrowdApplause(true);
 
@@ -2093,6 +2116,23 @@
 
     const fpvRig = createFirstPersonBiomechanicalRig();
 
+    // Glowing Early Landing Target Indicator on Player's Court Floor
+    const landingSpotGroup = new THREE.Group();
+    const outerTargetRing = new THREE.Mesh(
+      new THREE.RingGeometry(2.6, 3.4, 32),
+      new THREE.MeshBasicMaterial({ color: 0x00f0ff, side: THREE.DoubleSide, transparent: true, opacity: 0.75 })
+    );
+    outerTargetRing.rotation.x = -Math.PI / 2;
+    const innerTargetDisc = new THREE.Mesh(
+      new THREE.CircleGeometry(1.4, 24),
+      new THREE.MeshBasicMaterial({ color: 0xd4ff00, side: THREE.DoubleSide, transparent: true, opacity: 0.45 })
+    );
+    innerTargetDisc.rotation.x = -Math.PI / 2;
+    landingSpotGroup.add(outerTargetRing, innerTargetDisc);
+    landingSpotGroup.position.y = 0.1;
+    landingSpotGroup.visible = false;
+    scene.add(landingSpotGroup);
+
     const ballMesh = new THREE.Mesh(
       new THREE.SphereGeometry(1.55, 24, 24),
       new THREE.MeshStandardMaterial({
@@ -2105,7 +2145,7 @@
     ballMesh.castShadow = true;
     scene.add(ballMesh);
 
-    const MAX_TRAIL = 14;
+    const MAX_TRAIL = 16;
     const trailMeshes = [];
     const trailGeo = new THREE.SphereGeometry(1.1, 10, 10);
     for (let i = 0; i < MAX_TRAIL; i++) {
@@ -2155,7 +2195,7 @@
     }
 
     /******************************************************************
-     * 5. EXACT BALLISTIC TENNIS PHYSICS & 4-PHASE SWING STATE
+     * 5. SPEED-INVARIANT BALLISTIC PHYSICS & REALISTIC TENNIS RHYTHM
      ******************************************************************/
     const COURT = { widthNear: 360, netZ: 50, netHeight: 16 };
     let cameraShake = 0;
@@ -2167,7 +2207,7 @@
       pGames: 0,
       aiGames: 0,
       waitingForServe: true,
-      bannerText: 'MOVE TO WAGGLE • SWING OR SWIPE TO SERVE!',
+      bannerText: 'SET WRIST STANCE • SWING OR SWIPE TO SERVE!',
       shotFeedback: '',
       shotFeedbackSub: '',
       shotFeedbackColor: '#d4ff00',
@@ -2190,7 +2230,7 @@
       racketRot: new THREE.Vector3(0.35, -0.2, -0.35),
       racketRotVel: new THREE.Vector3(0, 0, 0)
     };
-    const ai = { x: 0, prevX: 0, z: 96, speed: 2.5, swingAnim: 0, stridePhase: 0 };
+    const ai = { x: 0, prevX: 0, z: 96, speed: 1.85, swingAnim: 0, stridePhase: 0 };
     const ball = {
       x: 15,
       y: 22,
@@ -2198,48 +2238,38 @@
       vx: 0,
       vy: 0,
       vz: 0,
-      gravity: 0.20,
+      gravity: 0.08,
       bounces: 0,
       lastHitter: null,
       trail: [],
-      isBoosted: false
+      isBoosted: false,
+      targetLandingX: 0,
+      targetLandingZ: 18
     };
 
     /**
-     * Exact Discrete Ballistic Trajectory Solver:
-     * Calculates (vx, vy, vz) so the ball starting at (ball.x, ball.y, ball.z)
-     * is guaranteed to clear the net (Z=50, Y>=22) and land on the court (Y=0)
-     * at (targetX, targetZ) in N frames.
+     * Speed-Invariant Parabolic Trajectory Solver:
+     * Dynamically scales shot gravity as 1/N^2 so that whether the rally is
+     * Relaxed, Realistic, or Fast, the ball ALWAYS skims the net at desiredMidpointY (~23)
+     * and bounces up to exact waist height (~14) at the baseline!
      */
-    function launchBallToTarget(targetX, targetZ, desiredFrames, minNetClearanceY = 22) {
-      let N = Math.max(24, Math.round(desiredFrames));
-      const g = ball.gravity;
+    function launchBallToTarget(targetX, targetZ, desiredFrames, desiredMidpointY = 23.5) {
+      const N = Math.max(32, Math.round(desiredFrames));
       const startX = ball.x;
       const startY = Math.max(4, ball.y);
       const startZ = ball.z;
 
-      // Verify net clearance at Z = 50; if too low, increase flight frames slightly
-      for (let attempt = 0; attempt < 8; attempt++) {
-        const vz = (targetZ - startZ) / N;
-        const vy = (-startY / N) + 0.5 * g * (N - 1);
-        const framesToNet = (COURT.netZ - startZ) / vz;
-        if (framesToNet > 0 && framesToNet < N) {
-          const k = framesToNet;
-          const yAtNet = startY + k * vy - 0.5 * g * (k - 1) * k;
-          if (yAtNet < minNetClearanceY) {
-            N += 4;
-            continue;
-          }
-        }
-        ball.vx = (targetX - startX) / N;
-        ball.vz = vz;
-        ball.vy = vy;
-        return;
-      }
+      // Compute exact shot gravity so midpoint height is desiredMidpointY (never a moonball!)
+      const midRise = Math.max(8, desiredMidpointY - startY * 0.5);
+      const shotG = (8 * midRise) / (N * N);
+      ball.gravity = shotG;
 
       ball.vx = (targetX - startX) / N;
       ball.vz = (targetZ - startZ) / N;
-      ball.vy = (-startY / N) + 0.5 * g * (N - 1);
+      ball.vy = (-startY / N) + 0.5 * shotG * (N - 1);
+
+      ball.targetLandingX = targetX;
+      ball.targetLandingZ = targetZ;
     }
 
     function resetBallForServe() {
@@ -2247,6 +2277,7 @@
       ball.bounces = 0;
       ball.trail = [];
       ball.isBoosted = false;
+      landingSpotGroup.visible = false;
       player.x = 18;
       player.targetX = 18;
       ai.x = -18;
@@ -2255,48 +2286,51 @@
       ball.y = 19;
       ball.z = player.z + 5;
       ball.vx = 0; ball.vy = 0; ball.vz = 0;
-      scoreState.bannerText = 'MOVE TO WAGGLE • SWING OR SWIPE TO SERVE!';
+      scoreState.bannerText = 'SET WRIST STANCE • SWING OR SWIPE TO SERVE!';
     }
 
     function showFeedback(text, subText = '', color = '#d4ff00') {
       scoreState.shotFeedback = text;
       scoreState.shotFeedbackSub = subText;
       scoreState.shotFeedbackColor = color;
-      scoreState.shotFeedbackTimer = 60;
+      scoreState.shotFeedbackTimer = 68;
     }
 
     function triggerPlayerSwing(power = 1.0, aimOverride = null, explicitStroke = null) {
       if (player.swingCooldown > 0) return;
 
-      const safePower = Number.isFinite(power) ? THREE.MathUtils.clamp(power, 0.85, 1.5) : 1.1;
+      const safePower = Number.isFinite(power) ? THREE.MathUtils.clamp(power, 0.88, 1.38) : 1.08;
       const swingStroke = explicitStroke || motionState.currentStance;
       motionState.currentStance = swingStroke;
       player.racketSide = getSideForStroke(swingStroke);
       player.swingProgress = 0.01;
-      player.swingCooldown = 20;
+      player.swingCooldown = 26;
       sfx.playSwoosh(safePower);
       updateTelemetryUI();
 
-      // 1. Serving (Guaranteed to clear net at Z=50 and bounce deep in opponent service box at Z=72)
+      const pace = PACE_PRESETS[paceIdx];
+
+      // 1. Serving (Realistic Serve Tempo into Opponent's Service Box at Z=72)
       if (scoreState.waitingForServe) {
         player.activeSwingType = 'SERVE';
         scoreState.waitingForServe = false;
+        landingSpotGroup.visible = false;
         ball.y = 24;
         const rawAim = (aimOverride !== null && Number.isFinite(aimOverride))
           ? aimOverride
           : (motionState.tiltGamma / 40);
         const aimAngle = THREE.MathUtils.clamp(rawAim, -0.85, 0.85);
 
-        const targetServeX = THREE.MathUtils.clamp(-24 + aimAngle * 65, -92, 92);
-        const targetServeZ = 72; // Deep inside opponent's service box (Net is 50, Service line is 76)
-        const serveFrames = Math.round(35 / Math.min(1.25, Math.max(0.92, safePower)));
+        const targetServeX = THREE.MathUtils.clamp(-24 + aimAngle * 65, -90, 90);
+        const targetServeZ = 72;
+        const serveFrames = Math.round(pace.serveFrames / Math.min(1.22, Math.max(0.92, safePower)));
 
-        launchBallToTarget(targetServeX, targetServeZ, serveFrames, 21);
+        launchBallToTarget(targetServeX, targetServeZ, serveFrames, 22.5);
 
         ball.bounces = 0;
         ball.lastHitter = 'PLAYER';
         ball.isBoosted = safePower > 1.2;
-        cameraShake = 0.7;
+        cameraShake = 0.65;
         sfx.playHit(safePower, 'CLEAN');
         spawnHitSparks3D(ball.x, ball.y, ball.z, 0xd4ff00, 16);
         showFeedback(
@@ -2309,33 +2343,34 @@
 
       player.activeSwingType = swingStroke;
 
-      // 2. Returning Ball (Guaranteed to clear net and land deep in opponent's court at Z=86..90)
+      // 2. Returning Ball (Extra generous hitting zone so you can swing smoothly after the bounce)
       const dz = ball.z - player.z;
       const dx = Math.abs(ball.x - player.x);
 
-      if (ball.vz < 0 && dz > -18 && dz < 52 && dx < 155) {
-        const requiredStroke = getRequiredStrokeForBall(ball.x, player.x);
+      if (ball.vz < 0 && dz > -22 && dz < 56 && dx < 155) {
+        landingSpotGroup.visible = false;
+        const requiredStroke = getRequiredStrokeForBall(ball.targetLandingX, player.x);
         const isMatchedStroke = (swingStroke === requiredStroke);
 
-        const timingOffset = THREE.MathUtils.clamp((dz - 14) / 22, -1, 1);
+        const timingOffset = THREE.MathUtils.clamp((dz - 14) / 24, -1, 1);
         const rawAim = (aimOverride !== null && Number.isFinite(aimOverride))
           ? aimOverride
           : (motionState.tiltGamma / 40);
         const tiltAim = THREE.MathUtils.clamp(rawAim, -1, 1);
 
-        let targetX = (tiltAim * 92) - (timingOffset * 36);
-        let targetZ = 88;
-        let flightFrames = 40;
-        let minNetY = 21;
+        let targetX = (tiltAim * 90) - (timingOffset * 34);
+        let targetZ = 84;
+        let flightFrames = pace.rallyFrames;
+        let midArcY = 23.5;
 
         if (isMatchedStroke) {
           if (swingStroke === 'BACKHAND') targetX *= 1.08;
-          targetX = THREE.MathUtils.clamp(targetX, -104, 104);
-          targetZ = 90;
-          flightFrames = Math.round(36 / Math.min(1.3, Math.max(0.9, safePower)));
-          minNetY = 20;
+          targetX = THREE.MathUtils.clamp(targetX, -102, 102);
+          targetZ = 86;
+          flightFrames = Math.round(pace.rallyFrames / Math.min(1.22, Math.max(0.92, safePower)));
+          midArcY = 22.5;
           ball.isBoosted = true;
-          cameraShake = 1.0;
+          cameraShake = 0.9;
           sfx.playHit(safePower * 1.2, 'CLEAN');
 
           const strokeColor = swingStroke === 'FOREHAND' ? '#00f0ff' : '#c084fc';
@@ -2347,10 +2382,10 @@
             strokeColor
           );
         } else {
-          targetX = THREE.MathUtils.clamp(targetX * 0.45, -70, 70);
-          targetZ = 80;
-          flightFrames = 46;
-          minNetY = 26;
+          targetX = THREE.MathUtils.clamp(targetX * 0.45, -68, 68);
+          targetZ = 78;
+          flightFrames = Math.round(pace.rallyFrames * 1.18);
+          midArcY = 27.5;
           ball.isBoosted = false;
           player.awkwardReachTimer = 28;
           sfx.playHit(safePower * 0.78, 'AWKWARD');
@@ -2363,7 +2398,7 @@
           );
         }
 
-        launchBallToTarget(targetX, targetZ, flightFrames, minNetY);
+        launchBallToTarget(targetX, targetZ, flightFrames, midArcY);
         ball.bounces = 0;
         ball.lastHitter = 'PLAYER';
       }
@@ -2371,6 +2406,7 @@
 
     function awardPoint(winner) {
       crowdCheerTimer = 75;
+      landingSpotGroup.visible = false;
       if (winner === 'PLAYER') {
         scoreState.pIdx++;
         sfx.playCrowdApplause(true);
@@ -2423,9 +2459,9 @@
         const normX = (e.clientX / window.innerWidth) * 2 - 1;
         const normY = 1 - (e.clientY / window.innerHeight) * 2;
 
-        motionState.tiltGamma = normX * 36;
-        motionState.tiltBeta = normY * 32;
-        motionState.tiltAlpha = -normX * 28;
+        motionState.tiltGamma = normX * 34;
+        motionState.tiltBeta = normY * 28;
+        motionState.tiltAlpha = -normX * 24;
 
         updateStanceFromWrist(motionState.tiltGamma);
         updateTelemetryUI();
@@ -2439,7 +2475,7 @@
       const dy = pointerStart.y - e.clientY;
       const dt = Math.max(16, performance.now() - pointerStart.time);
       const swipeSpeed = Math.sqrt(dx * dx + dy * dy) / dt;
-      const power = Math.min(1.38, Math.max(0.95, 0.92 + swipeSpeed * 0.32));
+      const power = Math.min(1.35, Math.max(0.95, 0.92 + swipeSpeed * 0.3));
       const aim = Math.max(-1, Math.min(1, dx / 160));
 
       let swipeStroke;
@@ -2485,11 +2521,12 @@
     function updatePhysics() {
       if (player.swingCooldown > 0) player.swingCooldown--;
       if (player.swingProgress > 0) {
-        player.swingProgress += 0.036;
+        // Unhurried, realistic biomechanical swing speed (~42 frames for full unit-turn to shoulder finish)
+        player.swingProgress += 0.024;
         if (player.swingProgress >= 1.0) player.swingProgress = 0;
       }
       if (player.awkwardReachTimer > 0) player.awkwardReachTimer--;
-      if (ai.swingAnim > 0) ai.swingAnim = Math.max(0, ai.swingAnim - 0.075);
+      if (ai.swingAnim > 0) ai.swingAnim = Math.max(0, ai.swingAnim - 0.055);
       if (scoreState.shotFeedbackTimer > 0) scoreState.shotFeedbackTimer--;
       if (cameraShake > 0) cameraShake = Math.max(0, cameraShake - 0.08);
       if (crowdCheerTimer > 0) crowdCheerTimer--;
@@ -2497,18 +2534,20 @@
       player.prevX = player.x;
       ai.prevX = ai.x;
 
+      // Smoothly glide player into optimal footwork position behind the incoming ball's landing spot
       if (!scoreState.waitingForServe) {
         const desiredStanceOffset = -player.racketSide * 13;
-        player.targetX = (ball.x * 0.88) + desiredStanceOffset;
+        const trackX = ball.vz < 0 ? ball.targetLandingX : ball.x * 0.5;
+        player.targetX = (trackX * 0.88) + desiredStanceOffset;
       }
 
-      player.x += (player.targetX - player.x) * 0.22;
+      player.x += (player.targetX - player.x) * 0.12;
       player.x = Math.max(-135, Math.min(135, player.x));
 
       if (scoreState.waitingForServe) {
         const rightFactor = motionState.handedness === 'RIGHT' ? 1 : -1;
         ball.x = player.x - rightFactor * 4.5;
-        ball.y = 19.5 + Math.sin(performance.now() * 0.005) * 1.2;
+        ball.y = 19.5 + Math.sin(performance.now() * 0.004) * 1.0;
         ball.z = player.z + 5.2;
         return;
       }
@@ -2518,8 +2557,8 @@
       ball.z += ball.vz;
       ball.vy -= ball.gravity;
 
-      ballMesh.rotation.x += ball.vz * 0.16;
-      ballMesh.rotation.z -= ball.vx * 0.16;
+      ballMesh.rotation.x += ball.vz * 0.14;
+      ballMesh.rotation.z -= ball.vx * 0.14;
 
       ball.trail.push({ x: ball.x, y: ball.y, z: ball.z, boosted: ball.isBoosted });
       if (ball.trail.length > MAX_TRAIL) ball.trail.shift();
@@ -2536,10 +2575,13 @@
         }
       }
 
-      // Ground Bounce
+      // Ground Bounce + Realistic Hardcourt Friction Deceleration (Slows ball by 26% on bounce!)
       if (ball.y <= 0) {
         ball.y = 0;
-        ball.vy = Math.min(3.2, Math.abs(ball.vy) * 0.76);
+        ball.vy = Math.abs(ball.vy) * 0.74;
+        // Acrylic court surface friction slows forward & lateral pace so the ball sits up nicely to hit
+        ball.vx *= 0.74;
+        ball.vz *= 0.74;
         ball.bounces++;
         sfx.playBounce();
         spawnBounceMark3D(ball.x, ball.z, ball.isBoosted);
@@ -2560,29 +2602,42 @@
         }
       }
 
-      if (ball.z < -12) { awardPoint(ball.bounces >= 1 ? 'AI' : 'PLAYER'); return; }
-      if (ball.z > 115) { awardPoint(ball.bounces >= 1 ? 'PLAYER' : 'AI'); return; }
-      if (Math.abs(ball.x) > 160) {
+      if (ball.z < -16) { awardPoint(ball.bounces >= 1 ? 'AI' : 'PLAYER'); return; }
+      if (ball.z > 116) { awardPoint(ball.bounces >= 1 ? 'PLAYER' : 'AI'); return; }
+      if (Math.abs(ball.x) > 162) {
         awardPoint(ball.lastHitter === 'PLAYER' ? 'AI' : 'PLAYER');
         return;
       }
 
-      // AI Opponent (Returns after 1st bounce on AI side, landing around Z=18 on player's side)
+      // AI Opponent: Waits for the ball to bounce and reach deep baseline (Z >= 91) before hitting!
       if (ball.vz > 0) {
         const diff = ball.x - ai.x;
         ai.x += Math.sign(diff) * Math.min(Math.abs(diff), ai.speed);
-        if (ball.z >= 84 && ball.z <= 102 && Math.abs(ball.x - ai.x) < 62) {
+
+        const readyToHitAfterBounce = (ball.bounces >= 1 && ball.z >= 88) || ball.z >= 95;
+        if (readyToHitAfterBounce && ball.z <= 104 && Math.abs(ball.x - ai.x) < 64) {
           ai.swingAnim = 1.0;
-          const cornerChoice = (Math.random() > 0.5 ? 1 : -1) * (38 + Math.random() * 50);
-          launchBallToTarget(cornerChoice, 18, 44, 21);
+          const pace = PACE_PRESETS[paceIdx];
+          // Choose a clear Forehand or Backhand target on Player's side
+          const cornerChoice = (Math.random() > 0.5 ? 1 : -1) * (34 + Math.random() * 44);
+          const aiLandingZ = 22; // Bounces near player's service line, then rises slowly to baseline
+          launchBallToTarget(cornerChoice, aiLandingZ, pace.aiFrames, 23.5);
+
           ball.bounces = 0;
           ball.isBoosted = false;
           ball.lastHitter = 'AI';
           sfx.playHit(0.95);
           spawnHitSparks3D(ball.x, ball.y, ball.z, 0xf43f5e, 12);
+
+          // Show Early Bounce Target Marker on Player's Court Floor immediately!
+          landingSpotGroup.position.x = to3DX(cornerChoice);
+          landingSpotGroup.position.z = to3DZ(aiLandingZ);
+          const reqStroke = getRequiredStrokeForBall(cornerChoice, cornerChoice * 0.85);
+          outerTargetRing.material.color.setHex(reqStroke === 'FOREHAND' ? 0x00f0ff : 0xc084fc);
+          landingSpotGroup.visible = true;
         }
       } else {
-        ai.x += (0 - ai.x) * 0.05;
+        ai.x += (0 - ai.x) * 0.035;
       }
     }
 
@@ -2643,29 +2698,29 @@
           targetRot.set(sample.rotX, sample.rotY, sample.rotZ);
         }
       } else {
-        const idleBreath = Math.sin(now * 0.005) * 0.16;
+        const idleBreath = Math.sin(now * 0.004) * 0.14;
         const stanceBaseX = isFH ? (handSign * 3.3) : (-handSign * 2.6);
         const liveSweepX = THREE.MathUtils.clamp(
-          stanceBaseX + (rollRad * 3.8) - (yawRad * 2.6) + (motionState.accelX * 0.14),
-          -6.8,
-          6.8
+          stanceBaseX + (rollRad * 3.2) - (yawRad * 2.0) + (motionState.accelX * 0.08),
+          -6.4,
+          6.4
         );
         const liveHeightY = THREE.MathUtils.clamp(
-          -3.6 + (pitchRad * 2.8) + (motionState.accelY * 0.12) + idleBreath,
-          -6.2,
-          2.5
+          -3.6 + (pitchRad * 2.4) + (motionState.accelY * 0.08) + idleBreath,
+          -6.0,
+          2.2
         );
-        const coilDepthZ = -6.8 + Math.abs(liveSweepX) * 0.22 - Math.min(1.8, motionState.accelMag * 0.1);
+        const coilDepthZ = -6.8 + Math.abs(liveSweepX) * 0.2;
 
         targetWristPos.set(liveSweepX, liveHeightY, coilDepthZ);
 
         const cantAngle = isFH
-          ? (-handSign * 0.42 - rollRad * 0.85)
-          : (handSign * 0.48 - rollRad * 0.85);
+          ? (-handSign * 0.42 - rollRad * 0.75)
+          : (handSign * 0.48 - rollRad * 0.75);
 
         targetRot.set(
-          -0.38 + pitchRad * 0.75,
-          -liveSweepX * 0.11 + yawRad * 0.5,
+          -0.38 + pitchRad * 0.65,
+          -liveSweepX * 0.1 + yawRad * 0.4,
           cantAngle
         );
 
@@ -2678,17 +2733,17 @@
         }
       }
 
-      const posStiffness = player.swingProgress > 0 ? 0.48 : 0.28;
-      const posDamping = 0.52;
+      const posStiffness = player.swingProgress > 0 ? 0.42 : 0.22;
+      const posDamping = 0.54;
       player.wristVel.x = (player.wristVel.x + (targetWristPos.x - player.wristPos.x) * posStiffness) * posDamping;
       player.wristVel.y = (player.wristVel.y + (targetWristPos.y - player.wristPos.y) * posStiffness) * posDamping;
       player.wristVel.z = (player.wristVel.z + (targetWristPos.z - player.wristPos.z) * posStiffness) * posDamping;
       player.wristPos.add(player.wristVel);
 
-      const lagPitch = -player.wristVel.y * 0.28;
-      const lagRoll = player.wristVel.x * 0.35;
-      const rotStiffness = player.swingProgress > 0 ? 0.45 : 0.25;
-      const rotDamping = 0.50;
+      const lagPitch = -player.wristVel.y * 0.25;
+      const lagRoll = player.wristVel.x * 0.32;
+      const rotStiffness = player.swingProgress > 0 ? 0.40 : 0.20;
+      const rotDamping = 0.52;
 
       player.racketRotVel.x = (player.racketRotVel.x + ((targetRot.x + lagPitch) - player.racketRot.x) * rotStiffness) * rotDamping;
       player.racketRotVel.y = (player.racketRotVel.y + (targetRot.y - player.racketRot.y) * rotStiffness) * rotDamping;
@@ -2764,19 +2819,19 @@
       if (camMode === 'FPV') {
         const safeBackZ = Math.max(pz3 + 15, bz3 + 11.5);
         desiredCamPos.set(
-          THREE.MathUtils.lerp(px3, bx3, 0.35) + shakeX * 0.4,
-          18.2 + Math.sin(now * 0.007) * 0.16 + shakeY * 0.4,
+          THREE.MathUtils.lerp(px3, bx3, 0.32) + shakeX * 0.4,
+          18.2 + Math.sin(now * 0.005) * 0.14 + shakeY * 0.4,
           safeBackZ
         );
-        camera.position.lerp(desiredCamPos, 0.28);
+        camera.position.lerp(desiredCamPos, 0.18);
 
         if (scoreState.waitingForServe) {
           desiredLook.set(px3 * 0.35 + aix3 * 0.25, 11.5, -35);
         } else {
           desiredLook.set(
-            THREE.MathUtils.lerp(0, bx3, 0.65),
-            THREE.MathUtils.clamp(THREE.MathUtils.lerp(10, by3, 0.62), 6, 32),
-            THREE.MathUtils.lerp(-30, Math.min(safeBackZ - 16, bz3), 0.35)
+            THREE.MathUtils.lerp(0, bx3, 0.60),
+            THREE.MathUtils.clamp(THREE.MathUtils.lerp(10, by3, 0.58), 6, 32),
+            THREE.MathUtils.lerp(-30, Math.min(safeBackZ - 16, bz3), 0.32)
           );
         }
       } else if (camMode === 'ACTION') {
@@ -2786,9 +2841,9 @@
           36 + shakeY,
           safeBackZ
         );
-        camera.position.lerp(desiredCamPos, 0.16);
+        camera.position.lerp(desiredCamPos, 0.14);
         desiredLook.set(
-          THREE.MathUtils.lerp(px3 * 0.25, bx3, 0.52),
+          THREE.MathUtils.lerp(px3 * 0.25, bx3, 0.50),
           THREE.MathUtils.clamp(THREE.MathUtils.lerp(10, by3, 0.5), 6, 28),
           THREE.MathUtils.lerp(-18, bz3, 0.25)
         );
@@ -2799,7 +2854,7 @@
           72 + shakeY,
           safeBackZ
         );
-        camera.position.lerp(desiredCamPos, 0.12);
+        camera.position.lerp(desiredCamPos, 0.10);
         desiredLook.set(
           THREE.MathUtils.lerp(0, bx3, 0.42),
           THREE.MathUtils.clamp(THREE.MathUtils.lerp(8, by3, 0.45), 5, 26),
@@ -2807,7 +2862,7 @@
         );
       }
 
-      smoothedLookTarget.lerp(desiredLook, 0.25);
+      smoothedLookTarget.lerp(desiredLook, 0.20);
       camera.lookAt(smoothedLookTarget);
       camera.updateMatrixWorld();
 
@@ -2841,7 +2896,7 @@
 
       const px3 = to3DX(player.x);
       const pz3 = to3DZ(player.z);
-      const splitStepBounce = Math.abs(Math.sin(now * 0.008)) * 0.45;
+      const splitStepBounce = Math.abs(Math.sin(now * 0.006)) * 0.38;
       player3D.root.position.set(px3, splitStepBounce, pz3);
 
       const pVelX = player.x - player.prevX;
@@ -2863,7 +2918,7 @@
 
       const aix3 = to3DX(ai.x);
       const aiz3 = to3DZ(ai.z);
-      const aiSplitBounce = Math.abs(Math.cos(now * 0.0085)) * 0.45;
+      const aiSplitBounce = Math.abs(Math.cos(now * 0.0065)) * 0.38;
       ai3D.root.position.set(aix3, aiSplitBounce, aiz3);
       ai3D.root.rotation.y = Math.PI;
 
@@ -2880,6 +2935,12 @@
       const by3 = Math.max(1.5, to3DY(ball.y));
       const bz3 = to3DZ(ball.z);
       ballMesh.position.set(bx3, by3, bz3);
+
+      // Pulse Early Bounce Target Marker on Court Floor
+      if (landingSpotGroup.visible) {
+        const pulse = 1 + Math.sin(now * 0.01) * 0.12;
+        outerTargetRing.scale.setScalar(pulse);
+      }
 
       for (let i = 0; i < MAX_TRAIL; i++) {
         const tm = trailMeshes[i];
@@ -2958,35 +3019,38 @@
       const h = hudCanvas.height;
       hudCtx.clearRect(0, 0, w, h);
 
-      if (!scoreState.waitingForServe && ball.vz < 0 && ball.z < 58 && ball.z > -10) {
+      // Show incoming FH / BH reticle as soon as the CPU hits the ball toward you
+      if (!scoreState.waitingForServe && ball.vz < 0 && ball.z < 92 && ball.z > -12) {
         tempVec.copy(ballMesh.position);
         tempVec.project(camera);
         if (tempVec.z < 1) {
           const sx = THREE.MathUtils.clamp((tempVec.x * 0.5 + 0.5) * w, 36, w - 36);
           const sy = THREE.MathUtils.clamp((-(tempVec.y * 0.5) + 0.5) * h, 50, h - 50);
 
-          const reqStroke = getRequiredStrokeForBall(ball.x, player.x);
+          const reqStroke = getRequiredStrokeForBall(ball.targetLandingX, player.x);
           const ringColor = reqStroke === 'FOREHAND' ? '#00f0ff' : '#c084fc';
-          const pulseRadius = 26 + Math.sin(performance.now() * 0.015) * 4;
+          const inStrikeZone = ball.z < 46;
+          const pulseRadius = (inStrikeZone ? 28 : 20) + Math.sin(performance.now() * 0.012) * 3;
 
           hudCtx.save();
           hudCtx.strokeStyle = ringColor;
-          hudCtx.lineWidth = 3;
+          hudCtx.lineWidth = inStrikeZone ? 3.5 : 2;
           hudCtx.shadowColor = ringColor;
-          hudCtx.shadowBlur = 12;
+          hudCtx.shadowBlur = inStrikeZone ? 14 : 6;
           hudCtx.beginPath();
           hudCtx.arc(sx, sy, pulseRadius, 0, Math.PI * 2);
           hudCtx.stroke();
 
           hudCtx.fillStyle = 'rgba(5, 8, 17, 0.88)';
           hudCtx.beginPath();
-          hudCtx.roundRect(sx - 20, sy - pulseRadius - 26, 40, 20, 6);
+          hudCtx.roundRect(sx - 34, sy - pulseRadius - 26, 68, 20, 6);
           hudCtx.fill();
 
           hudCtx.fillStyle = ringColor;
           hudCtx.font = '900 11px system-ui, sans-serif';
           hudCtx.textAlign = 'center';
-          hudCtx.fillText(reqStroke === 'FOREHAND' ? 'FH' : 'BH', sx, sy - pulseRadius - 12);
+          const actionWord = inStrikeZone ? 'SWING' : 'PREP';
+          hudCtx.fillText(`${actionWord} ${reqStroke === 'FOREHAND' ? 'FH' : 'BH'}`, sx, sy - pulseRadius - 12);
           hudCtx.restore();
         }
       }
@@ -3010,7 +3074,7 @@
 
       if (scoreState.shotFeedbackTimer > 0) {
         hudCtx.save();
-        const yAnim = h * 0.35 - (60 - scoreState.shotFeedbackTimer) * 0.5;
+        const yAnim = h * 0.35 - (68 - scoreState.shotFeedbackTimer) * 0.45;
         hudCtx.font = '900 26px system-ui, sans-serif';
         hudCtx.textAlign = 'center';
         hudCtx.fillStyle = scoreState.shotFeedbackColor;
@@ -3040,6 +3104,11 @@
     /******************************************************************
      * 8. UI EVENT BINDINGS & URL ?room= AUTO-JOIN CHECK
      ******************************************************************/
+    document.getElementById('btnPaceMode').addEventListener('click', (e) => {
+      paceIdx = (paceIdx + 1) % PACE_PRESETS.length;
+      e.target.textContent = `⏱️ Pace: ${PACE_PRESETS[paceIdx].label}`;
+    });
+
     document.getElementById('btnCameraMode').addEventListener('click', (e) => {
       cameraModeIdx = (cameraModeIdx + 1) % CAMERA_MODES.length;
       e.target.textContent = `🎥 Cam: ${CAMERA_MODES[cameraModeIdx].name}`;
@@ -3063,7 +3132,7 @@
       const ok = await enableMotionSensors();
       if (ok) {
         document.getElementById('sensorDot').classList.add('live');
-        document.getElementById('sensorStatusText').textContent = '60Hz 1st-Person Biomechanical IK Active';
+        document.getElementById('sensorStatusText').textContent = 'Set Wrist Once, Wait for Bounce & Swing';
       }
     });
 
@@ -3112,7 +3181,7 @@
       const aimRatio = motionState.tiltGamma / 40;
       if (navigator.vibrate) navigator.vibrate(35);
       if (peerConn && peerConn.open) {
-        peerConn.send({ type: 'SWING', power: 1.18, aim: aimRatio, stroke: 'FOREHAND' });
+        peerConn.send({ type: 'SWING', power: 1.15, aim: aimRatio, stroke: 'FOREHAND' });
       }
     });
 
@@ -3120,7 +3189,7 @@
       const aimRatio = motionState.tiltGamma / 40;
       if (navigator.vibrate) navigator.vibrate(35);
       if (peerConn && peerConn.open) {
-        peerConn.send({ type: 'SWING', power: 1.18, aim: aimRatio, stroke: 'BACKHAND' });
+        peerConn.send({ type: 'SWING', power: 1.15, aim: aimRatio, stroke: 'BACKHAND' });
       }
     });
 
