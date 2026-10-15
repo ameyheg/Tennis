@@ -3,16 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Motion Tennis Pro — QR Auto-Pair & Smart FH/BH</title>
-  <!-- PeerJS for WebRTC & QRious for instant Canvas QR Code generation -->
+  <title>Grand Slam Motion Tennis 3D — Hyper-Realistic Edition</title>
+  <!-- Three.js WebGL 3D Engine, PeerJS WebRTC, and QRious QR Generator -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
   <style>
     :root {
-      --bg: #0f172a;
-      --panel: rgba(15, 23, 42, 0.9);
-      --accent: #ccff00;
-      --fh-color: #22d3ee;
+      --bg: #050811;
+      --panel: rgba(9, 14, 28, 0.84);
+      --glass-border: rgba(255, 255, 255, 0.14);
+      --accent: #d4ff00;
+      --fh-color: #00f0ff;
       --bh-color: #c084fc;
       --text: #f8fafc;
       --muted: #94a3b8;
@@ -37,94 +39,142 @@
       touch-action: none;
     }
 
-    #gameCanvas {
-      display: block;
-      width: 100vw;
-      height: 100vh;
+    #webglContainer {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
     }
 
-    /* Top HUD */
+    #hudCanvas {
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      pointer-events: auto;
+    }
+
+    /* Broadcast TV Scorebug & Top Controls */
     #hud {
       position: fixed;
-      top: 10px;
-      left: 10px;
-      right: 10px;
+      top: 14px;
+      left: 16px;
+      right: 16px;
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
       pointer-events: none;
       z-index: 10;
-      gap: 8px;
+      gap: 12px;
     }
 
-    .scoreboard {
-      background: var(--panel);
-      backdrop-filter: blur(8px);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 12px;
-      padding: 8px 14px;
-      display: flex;
-      gap: 16px;
-      align-items: center;
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+    .tv-scorebug {
+      background: linear-gradient(135deg, rgba(10, 17, 34, 0.94) 0%, rgba(19, 32, 60, 0.9) 100%);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--glass-border);
+      border-left: 4px solid var(--accent);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+      min-width: 235px;
     }
 
-    .score-col {
-      text-align: center;
-    }
-
-    .score-label {
-      font-size: 0.68rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--muted);
-    }
-
-    .score-val {
-      font-size: 1.45rem;
+    .tv-header {
+      background: rgba(255, 255, 255, 0.06);
+      padding: 4px 12px;
+      font-size: 0.62rem;
       font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
       color: var(--accent);
-      line-height: 1.1;
+      display: flex;
+      justify-content: space-between;
     }
 
-    .score-games {
-      font-size: 0.72rem;
+    .tv-row {
+      display: grid;
+      grid-template-columns: 1fr 34px 44px;
+      align-items: center;
+      padding: 6px 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    .tv-player {
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .serve-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+    }
+
+    .tv-games {
+      text-align: center;
+      font-size: 0.85rem;
+      font-weight: 700;
       color: #cbd5e1;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 2px 0;
+      border-radius: 4px;
+    }
+
+    .tv-points {
+      text-align: center;
+      font-size: 0.95rem;
+      font-weight: 900;
+      color: #0f172a;
+      background: var(--accent);
+      padding: 2px 0;
+      border-radius: 4px;
+      margin-left: 6px;
     }
 
     .controls-bar {
       pointer-events: auto;
       display: flex;
-      gap: 6px;
+      gap: 7px;
       flex-wrap: wrap;
       justify-content: flex-end;
-      max-width: 62vw;
+      max-width: 60vw;
     }
 
     .btn {
       background: var(--panel);
+      backdrop-filter: blur(10px);
       color: var(--text);
-      border: 1px solid rgba(255, 255, 255, 0.22);
-      padding: 7px 11px;
+      border: 1px solid var(--glass-border);
+      padding: 8px 13px;
       border-radius: 8px;
       font-size: 0.78rem;
       font-weight: 600;
       cursor: pointer;
+      transition: all 0.15s ease;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+    }
+
+    .btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
     }
 
     .btn-primary {
       background: var(--accent);
-      color: #0f172a;
+      color: #090d16;
       border-color: var(--accent);
-      font-weight: 700;
+      font-weight: 800;
     }
 
-    /* Warning Banner for file:// or Blocked Sensors */
     #securityBanner {
       position: fixed;
-      top: 78px;
-      left: 12px;
-      right: 12px;
+      top: 96px;
+      left: 16px;
+      right: 16px;
       background: rgba(239, 68, 68, 0.95);
       color: #fff;
       padding: 10px 14px;
@@ -132,18 +182,19 @@
       font-size: 0.8rem;
       line-height: 1.35;
       z-index: 25;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
     }
 
-    /* Bottom Live Sensor Telemetry Bar */
+    /* Bottom Telemetry Bar */
     .sensor-pill {
       position: fixed;
       bottom: 12px;
-      left: 12px;
-      right: 12px;
+      left: 16px;
+      right: 16px;
       background: var(--panel);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      padding: 10px 14px;
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--glass-border);
+      padding: 10px 16px;
       border-radius: 12px;
       font-size: 0.78rem;
       z-index: 10;
@@ -151,6 +202,7 @@
       flex-direction: column;
       gap: 6px;
       pointer-events: auto;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     }
 
     .sensor-row {
@@ -167,46 +219,45 @@
       border-radius: 50%;
       background: #64748b;
       display: inline-block;
-      flex-shrink: 0;
     }
     .dot.live {
       background: #22c55e;
-      box-shadow: 0 0 8px #22c55e;
+      box-shadow: 0 0 10px #22c55e;
     }
     .dot.warn {
       background: #f59e0b;
-      box-shadow: 0 0 8px #f59e0b;
+      box-shadow: 0 0 10px #f59e0b;
     }
 
     .stance-badge {
-      padding: 3px 9px;
+      padding: 3px 10px;
       border-radius: 6px;
       font-weight: 800;
-      font-size: 0.74rem;
-      letter-spacing: 0.04em;
-      background: rgba(34, 211, 238, 0.18);
+      font-size: 0.73rem;
+      letter-spacing: 0.05em;
+      background: rgba(0, 240, 255, 0.16);
       color: var(--fh-color);
-      border: 1px solid rgba(34, 211, 238, 0.4);
+      border: 1px solid rgba(0, 240, 255, 0.45);
     }
     .stance-badge.backhand {
       background: rgba(192, 132, 252, 0.18);
       color: var(--bh-color);
-      border-color: rgba(192, 132, 252, 0.4);
+      border-color: rgba(192, 132, 252, 0.45);
     }
 
     .mini-meter-bg {
       flex: 1;
-      height: 10px;
-      background: #1e293b;
+      height: 9px;
+      background: rgba(255, 255, 255, 0.07);
       border-radius: 999px;
       overflow: hidden;
-      border: 1px solid rgba(255,255,255,0.12);
+      border: 1px solid rgba(255, 255, 255, 0.12);
     }
 
     .mini-meter-fill {
       height: 100%;
       width: 0%;
-      background: linear-gradient(90deg, #22c55e, #ccff00, #ef4444);
+      background: linear-gradient(90deg, #22c55e, #d4ff00, #ef4444);
       transition: width 0.05s linear;
     }
 
@@ -214,8 +265,8 @@
     .overlay {
       position: fixed;
       inset: 0;
-      background: rgba(15, 23, 42, 0.88);
-      backdrop-filter: blur(10px);
+      background: radial-gradient(circle at center, rgba(15, 23, 42, 0.78) 0%, rgba(5, 8, 17, 0.94) 100%);
+      backdrop-filter: blur(12px);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -229,50 +280,53 @@
     }
 
     .card {
-      background: #1e293b;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      border-radius: 18px;
-      max-width: 550px;
+      background: linear-gradient(160deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 20px;
+      max-width: 560px;
       width: 100%;
-      padding: 20px;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+      padding: 22px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.65);
       max-height: 92vh;
       overflow-y: auto;
     }
 
     .card h1 {
-      font-size: 1.45rem;
+      font-size: 1.5rem;
       margin-bottom: 6px;
+      letter-spacing: -0.01em;
     }
 
     .card p.sub {
       color: var(--muted);
       font-size: 0.84rem;
       margin-bottom: 14px;
-      line-height: 1.4;
+      line-height: 1.45;
     }
 
     .mode-grid {
       display: grid;
-      gap: 9px;
+      gap: 10px;
       margin-bottom: 12px;
     }
 
     .mode-option {
-      background: rgba(15, 23, 42, 0.75);
-      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(9, 14, 28, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.12);
       border-radius: 12px;
-      padding: 11px 14px;
+      padding: 12px 15px;
       cursor: pointer;
       text-align: left;
+      transition: transform 0.12s ease, border-color 0.12s ease;
     }
 
     .mode-option:hover, .mode-option:active {
       border-color: var(--accent);
+      transform: translateY(-1px);
     }
 
     .mode-option h3 {
-      font-size: 0.93rem;
+      font-size: 0.94rem;
       color: var(--accent);
       margin-bottom: 3px;
     }
@@ -290,10 +344,10 @@
       gap: 16px;
       align-items: center;
       justify-content: center;
-      background: rgba(15, 23, 42, 0.65);
+      background: rgba(9, 14, 28, 0.75);
       padding: 14px;
       border-radius: 14px;
-      border: 1px solid rgba(204, 255, 0, 0.25);
+      border: 1px solid rgba(212, 255, 0, 0.3);
       margin-top: 8px;
     }
 
@@ -304,7 +358,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
     }
 
     .qr-details {
@@ -319,12 +373,12 @@
       letter-spacing: 5px;
       font-weight: 800;
       color: var(--accent);
-      background: #0f172a;
+      background: #050811;
       padding: 6px 12px;
       border-radius: 8px;
       display: inline-block;
       margin: 6px 0;
-      border: 1px solid rgba(204, 255, 0, 0.4);
+      border: 1px solid rgba(212, 255, 0, 0.4);
     }
 
     .url-input {
@@ -332,7 +386,7 @@
       padding: 6px 8px;
       font-size: 0.72rem;
       font-family: monospace;
-      background: #0f172a;
+      background: #050811;
       color: #cbd5e1;
       border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius: 6px;
@@ -348,7 +402,7 @@
       width: 160px;
       border-radius: 8px;
       border: 1px solid rgba(255, 255, 255, 0.25);
-      background: #0f172a;
+      background: #050811;
       color: var(--accent);
       text-transform: uppercase;
     }
@@ -357,7 +411,7 @@
     #racketControllerUI {
       position: fixed;
       inset: 0;
-      background: radial-gradient(circle at center, #1e293b 0%, #090d16 100%);
+      background: radial-gradient(circle at center, #1e293b 0%, #050811 100%);
       z-index: 40;
       display: flex;
       flex-direction: column;
@@ -369,7 +423,7 @@
     .grip-zone {
       flex: 1;
       margin: 14px 0;
-      border: 3px dashed rgba(204, 255, 0, 0.35);
+      border: 3px dashed rgba(212, 255, 0, 0.35);
       border-radius: 24px;
       display: flex;
       flex-direction: column;
@@ -389,11 +443,10 @@
       letter-spacing: 0.06em;
     }
 
-    /* iOS One-Tap Sensor Activation Banner inside Controller */
     #iosPermissionOverlay {
       position: absolute;
       inset: 0;
-      background: rgba(15, 23, 42, 0.94);
+      background: rgba(5, 8, 17, 0.95);
       border-radius: 21px;
       display: flex;
       flex-direction: column;
@@ -407,27 +460,34 @@
 </head>
 <body>
 
-  <!-- Top HUD -->
+  <!-- 3D WebGL Stadium Container & 2D Broadcast Vector Overlay -->
+  <div id="webglContainer"></div>
+  <canvas id="hudCanvas"></canvas>
+
+  <!-- Broadcast TV Scorebug & Top Bar -->
   <div id="hud">
-    <div class="scoreboard">
-      <div class="score-col">
-        <div class="score-label">YOU</div>
-        <div class="score-val" id="pScore">0</div>
-        <div class="score-games">Games: <span id="pGames">0</span></div>
+    <div class="tv-scorebug">
+      <div class="tv-header">
+        <span>GRAND SLAM ARENA</span>
+        <span>FINAL SET</span>
       </div>
-      <div style="color:#475569; font-weight:700;">VS</div>
-      <div class="score-col">
-        <div class="score-label">CPU</div>
-        <div class="score-val" id="aiScore">0</div>
-        <div class="score-games">Games: <span id="aiGames">0</span></div>
+      <div class="tv-row">
+        <div class="tv-player"><span class="serve-dot"></span> YOU</div>
+        <div class="tv-games" id="pGames">0</div>
+        <div class="tv-points" id="pScore">0</div>
+      </div>
+      <div class="tv-row">
+        <div class="tv-player"><span style="width:7px;"></span> CPU PRO</div>
+        <div class="tv-games" id="aiGames">0</div>
+        <div class="tv-points" id="aiScore">0</div>
       </div>
     </div>
 
     <div class="controls-bar">
-      <button class="btn" id="btnHandedness" title="Toggle Right or Left Handed">Hand: Right</button>
+      <button class="btn" id="btnHandedness">Hand: Right</button>
       <button class="btn" id="btnCalibrate">Center Tilt</button>
       <button class="btn" id="btnSensitivity">Sens: High</button>
-      <button class="btn" id="btnOpenMenu">Mode</button>
+      <button class="btn" id="btnOpenMenu">Camera / Mode</button>
     </div>
   </div>
 
@@ -459,8 +519,8 @@
   <!-- Main Menu Modal -->
   <div id="menuModal" class="overlay">
     <div class="card">
-      <h1>🎾 Motion Tennis Pro</h1>
-      <p class="sub">Scan a QR code in Dual-Screen Mode to turn your phone into a wireless racket automatically, or play right on this device.</p>
+      <h1>🎾 Grand Slam 3D Motion Tennis</h1>
+      <p class="sub">Hyper-Realistic WebGL 3D Edition — Scan the QR code to use your phone as a wireless racket with real-time Forehand & Backhand physics.</p>
 
       <div class="mode-grid">
         <div class="mode-option" id="optHostPC">
@@ -469,8 +529,8 @@
         </div>
 
         <div class="mode-option" id="optSinglePhone">
-          <h3>📱 Play on This Phone (Single-Screen Motion Mode)</h3>
-          <p><strong>Tilt right/left</strong> to prep Forehand or Backhand and <strong>flick your wrist</strong> when the <code>FH</code> or <code>BH</code> ring appears on the ball.</p>
+          <h3>📱 Play on This Phone (Single-Screen 3D Motion Mode)</h3>
+          <p><strong>Tilt right/left</strong> to prep Forehand or Backhand and <strong>flick your wrist</strong> when the <code>FH</code> or <code>BH</code> target reticle locks onto the ball.</p>
         </div>
 
         <div class="mode-option" id="optPhoneController">
@@ -480,7 +540,7 @@
 
         <div class="mode-option" id="optTouchMouse">
           <h3>👆 Touch Swipe / Mouse Mode</h3>
-          <p>Swipe left-to-right or right-to-left across the ball to hit Forehands and Backhands on any screen.</p>
+          <p>Swipe left-to-right or right-to-left across the court to hit Forehands and Backhands on any screen.</p>
         </div>
       </div>
 
@@ -493,7 +553,7 @@
           <div class="qr-details">
             <div style="font-weight:700; color:var(--accent); font-size:0.9rem;">📷 Scan with Phone Camera</div>
             <p style="font-size:0.76rem; color:#cbd5e1; margin-top:2px; line-height:1.35;">
-              Scanning opens the wireless racket and pairs to this court automatically.
+              Scanning opens the wireless racket and pairs to this 3D stadium automatically.
             </p>
             <div style="margin-top:6px;">
               <span style="font-size:0.72rem; color:var(--muted);">Backup Room Code:</span><br />
@@ -505,7 +565,6 @@
           </div>
         </div>
 
-        <!-- Editable Base URL for localhost / LAN testing -->
         <div style="margin-top:8px; text-align:left;">
           <label style="font-size:0.7rem; color:var(--muted);">
             QR Link Base URL (edit if testing on local Wi-Fi IP):
@@ -531,13 +590,12 @@
     <div style="background:rgba(255,255,255,0.06); padding:12px; border-radius:12px; display:flex; justify-content:space-between; align-items:center;">
       <div style="text-align:left;">
         <div style="font-weight:700; color:var(--accent);" id="controllerHeaderTitle">🎾 WIRELESS RACKET</div>
-        <div style="font-size:0.74rem; color:var(--muted);" id="controllerConnSub">Connected to PC Court</div>
+        <div style="font-size:0.74rem; color:var(--muted);" id="controllerConnSub">Connected to 3D Stadium</div>
       </div>
       <button class="btn" id="btnControllerHand">Hand: Right</button>
     </div>
 
     <div class="grip-zone" id="controllerGripZone">
-      <!-- Shown only on iOS Safari where Apple requires a tap gesture for DeviceMotionEvent -->
       <div id="iosPermissionOverlay" class="hidden">
         <div style="font-size:3rem; margin-bottom:10px;">📲</div>
         <h2 style="color:var(--accent); margin-bottom:6px;">Tap to Activate Motion Sensors</h2>
@@ -547,7 +605,7 @@
         <button class="btn btn-primary" style="padding:12px 24px; font-size:0.95rem;">Activate Racket Sensors</button>
       </div>
 
-      <div id="controllerStancePill" class="controller-stance-pill" style="background:rgba(34,211,238,0.2); color:#22d3ee; border:2px solid #22d3ee;">
+      <div id="controllerStancePill" class="controller-stance-pill" style="background:rgba(0,240,255,0.2); color:#00f0ff; border:2px solid #00f0ff;">
         FOREHAND READY
       </div>
       <p style="font-size:0.84rem; color:#cbd5e1; max-width:270px; margin-bottom:12px;">
@@ -564,7 +622,7 @@
       </div>
 
       <div style="display:flex; gap:10px; margin-top:20px; width:100%; justify-content:center;">
-        <button class="btn btn-primary" id="btnTapFH" style="padding:12px 18px; background:#22d3ee; border-color:#22d3ee;">
+        <button class="btn btn-primary" id="btnTapFH" style="padding:12px 18px; background:#00f0ff; border-color:#00f0ff;">
           Swing FH
         </button>
         <button class="btn btn-primary" id="btnTapBH" style="padding:12px 18px; background:#c084fc; border-color:#c084fc;">
@@ -579,11 +637,9 @@
     </div>
   </div>
 
-  <canvas id="gameCanvas"></canvas>
-
   <script>
     /******************************************************************
-     * 1. SOUND ENGINE (Distinct Clean Boost vs. Off-Balance Audio)
+     * 1. ACOUSTIC STADIUM SOUND ENGINE (Web Audio API)
      ******************************************************************/
     class SoundEngine {
       constructor() { this.ctx = null; }
@@ -598,33 +654,57 @@
         this.init();
         if (!this.ctx) return;
         const now = this.ctx.currentTime;
+
+        // Low-end racket frame thump
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
+        // High-frequency string bed ping
+        const ping = this.ctx.createOscillator();
+        const pingGain = this.ctx.createGain();
 
         if (quality === 'CLEAN') {
           osc.type = 'sawtooth';
-          osc.frequency.setValueAtTime(240 * Math.min(1.4, power), now);
-          osc.frequency.exponentialRampToValueAtTime(65, now + 0.11);
-          gain.gain.setValueAtTime(0.5, now);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.11);
+          osc.frequency.setValueAtTime(245 * Math.min(1.4, power), now);
+          osc.frequency.exponentialRampToValueAtTime(58, now + 0.12);
+          gain.gain.setValueAtTime(0.52, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+
+          ping.type = 'sine';
+          ping.frequency.setValueAtTime(1180, now);
+          ping.frequency.exponentialRampToValueAtTime(620, now + 0.08);
+          pingGain.gain.setValueAtTime(0.18, now);
+          pingGain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
         } else if (quality === 'AWKWARD') {
           osc.type = 'sine';
-          osc.frequency.setValueAtTime(120, now);
-          osc.frequency.exponentialRampToValueAtTime(45, now + 0.08);
-          gain.gain.setValueAtTime(0.3, now);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+          osc.frequency.setValueAtTime(125, now);
+          osc.frequency.exponentialRampToValueAtTime(42, now + 0.09);
+          gain.gain.setValueAtTime(0.32, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+
+          pingGain.gain.setValueAtTime(0.001, now);
         } else {
           osc.type = 'triangle';
           osc.frequency.setValueAtTime(195 * power, now);
-          osc.frequency.exponentialRampToValueAtTime(55, now + 0.09);
+          osc.frequency.exponentialRampToValueAtTime(55, now + 0.095);
           gain.gain.setValueAtTime(0.42, now);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.095);
+
+          ping.type = 'sine';
+          ping.frequency.setValueAtTime(920, now);
+          ping.frequency.exponentialRampToValueAtTime(510, now + 0.06);
+          pingGain.gain.setValueAtTime(0.1, now);
+          pingGain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
         }
 
         osc.connect(gain);
         gain.connect(this.ctx.destination);
+        ping.connect(pingGain);
+        pingGain.connect(this.ctx.destination);
+
         osc.start(now);
-        osc.stop(now + 0.12);
+        osc.stop(now + 0.13);
+        ping.start(now);
+        ping.stop(now + 0.09);
       }
       playBounce() {
         this.init();
@@ -633,32 +713,51 @@
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(135, now);
-        osc.frequency.exponentialRampToValueAtTime(48, now + 0.06);
-        gain.gain.setValueAtTime(0.25, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+        osc.frequency.setValueAtTime(145, now);
+        osc.frequency.exponentialRampToValueAtTime(46, now + 0.065);
+        gain.gain.setValueAtTime(0.28, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.065);
         osc.connect(gain);
         gain.connect(this.ctx.destination);
         osc.start(now);
-        osc.stop(now + 0.06);
+        osc.stop(now + 0.065);
       }
-      playScoreTone(win = true) {
+      playCrowdApplause(win = true) {
         this.init();
         if (!this.ctx) return;
         const now = this.ctx.currentTime;
-        const freqs = win ? [440, 554, 659] : [300, 240];
+        // Stadium score chime + synthesized crowd roar
+        const freqs = win ? [523.25, 659.25, 783.99, 1046.5] : [330, 261.63];
         freqs.forEach((f, idx) => {
           const osc = this.ctx.createOscillator();
           const gain = this.ctx.createGain();
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(f, now + idx * 0.09);
-          gain.gain.setValueAtTime(0.2, now + idx * 0.09);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.09 + 0.18);
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(f, now + idx * 0.08);
+          gain.gain.setValueAtTime(0.16, now + idx * 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.24);
           osc.connect(gain);
           gain.connect(this.ctx.destination);
-          osc.start(now + idx * 0.09);
-          osc.stop(now + idx * 0.09 + 0.18);
+          osc.start(now + idx * 0.08);
+          osc.stop(now + idx * 0.08 + 0.24);
         });
+
+        // Soft stadium applause wash
+        const dur = win ? 0.9 : 0.45;
+        const bufSize = Math.floor(this.ctx.sampleRate * dur);
+        const buf = this.ctx.createBuffer(1, bufSize, this.ctx.sampleRate);
+        const data = buf.getChannelData(0);
+        for (let i = 0; i < bufSize; i++) {
+          const env = Math.sin((i / bufSize) * Math.PI);
+          data[i] = (Math.random() * 2 - 1) * env * (win ? 0.18 : 0.08);
+        }
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buf;
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.value = 1100;
+        noise.connect(filter);
+        filter.connect(this.ctx.destination);
+        noise.start(now);
       }
     }
 
@@ -766,7 +865,6 @@
           await DeviceOrientationEvent.requestPermission();
         }
       } catch (e) {
-        console.warn('Permission request requires user gesture:', e);
         return false;
       }
 
@@ -916,10 +1014,10 @@
       if (ctrlPill && ctrlZone) {
         ctrlPill.textContent = `${motionState.currentStance} READY`;
         if (isFH) {
-          ctrlPill.style.background = 'rgba(34, 211, 238, 0.2)';
-          ctrlPill.style.color = '#22d3ee';
-          ctrlPill.style.borderColor = '#22d3ee';
-          ctrlZone.style.borderColor = 'rgba(34, 211, 238, 0.5)';
+          ctrlPill.style.background = 'rgba(0, 240, 255, 0.2)';
+          ctrlPill.style.color = '#00f0ff';
+          ctrlPill.style.borderColor = '#00f0ff';
+          ctrlZone.style.borderColor = 'rgba(0, 240, 255, 0.5)';
         } else {
           ctrlPill.style.background = 'rgba(192, 132, 252, 0.2)';
           ctrlPill.style.color = '#c084fc';
@@ -959,7 +1057,7 @@
           size: 165,
           level: 'M',
           background: '#ffffff',
-          foreground: '#0f172a'
+          foreground: '#050811'
         });
       } else {
         qrInstance.value = fullUrl;
@@ -993,7 +1091,7 @@
         document.getElementById('sensorDot').classList.add('live');
         document.getElementById('sensorStatusText').textContent = `Wireless Racket Connected (${currentRoomCode})`;
         document.getElementById('menuModal').classList.add('hidden');
-        sfx.playScoreTone(true);
+        sfx.playCrowdApplause(true);
 
         conn.on('data', (data) => {
           if (data.type === 'TILT') {
@@ -1033,14 +1131,12 @@
       document.getElementById('racketControllerUI').classList.remove('hidden');
       document.getElementById('controllerConnSub').textContent = `Connecting to Room ${cleanCode}...`;
 
-      // Start sensors immediately if on Android (no gesture required) or if triggered by tap
       if (!isAutoFromQr || !needsIosPermissionGesture()) {
         const granted = await enableMotionSensors();
         if (!granted && needsIosPermissionGesture()) {
           document.getElementById('iosPermissionOverlay').classList.remove('hidden');
         }
       } else {
-        // iOS Safari opened via QR code scan: show one-tap sensor activation overlay
         document.getElementById('iosPermissionOverlay').classList.remove('hidden');
       }
 
@@ -1066,27 +1162,553 @@
             }
           }, 40);
         });
-
-        conn.on('error', () => {
-          document.getElementById('controllerConnSub').textContent = `Connection failed (${cleanCode}). Try rescanning.`;
-        });
       });
     }
 
     /******************************************************************
-     * 4. TENNIS PHYSICS & FOREHAND / BACKHAND BONUS ENGINE
+     * 4. HYPER-REALISTIC 3D WEBGL STADIUM & ATHLETE ENGINE (Three.js)
      ******************************************************************/
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
+    // Coordinate conversion from Game Physics Space to True 3D Grand Slam Proportions:
+    // Physics X: -150..+150 (Doubles width), Physics Z: 0..100 (Baseline to Baseline), Physics Y: 0..up
+    const SCALE_X = 0.36; // 300 * 0.36 = 108 units wide
+    const SCALE_Y = 0.62;
+    const SCALE_Z = 2.20; // 100 * 2.20 = 220 units long (Net at 3D Z = 0)
 
-    function resizeCanvas() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+    function to3DX(wx) { return wx * SCALE_X; }
+    function to3DY(wy) { return wy * SCALE_Y; }
+    function to3DZ(wz) { return (50 - wz) * SCALE_Z; } // Player at Z = +101, AI at Z = -101, Net at Z = 0
+
+    const webglContainer = document.getElementById('webglContainer');
+    const hudCanvas = document.getElementById('hudCanvas');
+    const hudCtx = hudCanvas.getContext('2d');
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x040711);
+    scene.fog = new THREE.FogExp2(0x040711, 0.0014);
+
+    const camera = new THREE.PerspectiveCamera(44, window.innerWidth / window.innerHeight, 1, 1200);
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.12;
+    webglContainer.appendChild(renderer.domElement);
+
+    // --- Procedural High-Resolution Acrylic Court Texture ---
+    function createAcrylicCourtTexture() {
+      const c = document.createElement('canvas');
+      c.width = 1024;
+      c.height = 2048;
+      const g = c.getContext('2d');
+
+      // Outer Stadium Surround (Deep Championship Green/Teal-Blue)
+      g.fillStyle = '#0f3952';
+      g.fillRect(0, 0, c.width, c.height);
+
+      // Inner Playing Surface (US Open / Australian Open Royal Blue)
+      const padX = 162;
+      const padY = 260;
+      const innerW = c.width - padX * 2;
+      const innerH = c.height - padY * 2;
+
+      const courtGrad = g.createLinearGradient(0, padY, 0, padY + innerH);
+      courtGrad.addColorStop(0, '#1b4f9c');
+      courtGrad.addColorStop(0.5, '#2159ab');
+      courtGrad.addColorStop(1, '#1b4f9c');
+      g.fillStyle = courtGrad;
+      g.fillRect(padX, padY, innerW, innerH);
+
+      // Subtle Mowed / Rolled Acrylic Banding Stripes
+      for (let i = 0; i < 16; i++) {
+        if (i % 2 === 0) {
+          g.fillStyle = 'rgba(255, 255, 255, 0.018)';
+          g.fillRect(padX, padY + (innerH / 16) * i, innerW, innerH / 16);
+        }
+      }
+
+      // Micro-Silica Hardcourt Grit Noise
+      for (let i = 0; i < 38000; i++) {
+        const x = Math.random() * c.width;
+        const y = Math.random() * c.height;
+        g.fillStyle = Math.random() > 0.5 ? 'rgba(255,255,255,0.035)' : 'rgba(0,0,0,0.045)';
+        g.fillRect(x, y, 2, 2);
+      }
+
+      // Realistic Footwork Wear Zones at Both Baselines
+      const wearGrad1 = g.createRadialGradient(c.width / 2, padY + innerH, 10, c.width / 2, padY + innerH, 220);
+      wearGrad1.addColorStop(0, 'rgba(12, 30, 65, 0.32)');
+      wearGrad1.addColorStop(1, 'rgba(12, 30, 65, 0)');
+      g.fillStyle = wearGrad1;
+      g.fillRect(padX, padY + innerH - 250, innerW, 300);
+
+      const wearGrad2 = g.createRadialGradient(c.width / 2, padY, 10, c.width / 2, padY, 220);
+      wearGrad2.addColorStop(0, 'rgba(12, 30, 65, 0.32)');
+      wearGrad2.addColorStop(1, 'rgba(12, 30, 65, 0)');
+      g.fillStyle = wearGrad2;
+      g.fillRect(padX, padY - 50, innerW, 300);
+
+      // Crisp Painted White Court Lines
+      g.strokeStyle = '#f8fafc';
+      g.lineWidth = 10;
+      g.strokeRect(padX, padY, innerW, innerH); // Doubles Sidelines & Baselines
+
+      // Singles Sidelines (115 / 150 ratio)
+      const alleyW = innerW * (35 / 300);
+      g.beginPath();
+      g.moveTo(padX + alleyW, padY);
+      g.lineTo(padX + alleyW, padY + innerH);
+      g.moveTo(padX + innerW - alleyW, padY);
+      g.lineTo(padX + innerW - alleyW, padY + innerH);
+      g.stroke();
+
+      // Service Lines (24 / 100 and 76 / 100)
+      const srvTopY = padY + innerH * 0.24;
+      const srvBotY = padY + innerH * 0.76;
+      g.beginPath();
+      g.moveTo(padX + alleyW, srvTopY);
+      g.lineTo(padX + innerW - alleyW, srvTopY);
+      g.moveTo(padX + alleyW, srvBotY);
+      g.lineTo(padX + innerW - alleyW, srvBotY);
+      // Center Service Line
+      g.moveTo(c.width / 2, srvTopY);
+      g.lineTo(c.width / 2, srvBotY);
+      // Baseline Center Hash Marks
+      g.moveTo(c.width / 2, padY);
+      g.lineTo(c.width / 2, padY + 28);
+      g.moveTo(c.width / 2, padY + innerH);
+      g.lineTo(c.width / 2, padY + innerH - 28);
+      g.stroke();
+
+      // Painted On-Court "GRAND SLAM" Stencils
+      g.save();
+      g.font = '900 44px system-ui, sans-serif';
+      g.fillStyle = 'rgba(255, 255, 255, 0.14)';
+      g.textAlign = 'center';
+      g.fillText('GRAND SLAM ARENA', c.width / 2, padY - 75);
+      g.fillText('GRAND SLAM ARENA', c.width / 2, padY + innerH + 105);
+      g.restore();
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+      return tex;
     }
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
 
+    // --- Procedural Net Mesh Alpha Texture ---
+    function createNetTexture() {
+      const c = document.createElement('canvas');
+      c.width = 512;
+      c.height = 128;
+      const g = c.getContext('2d');
+
+      // Braided black nylon cord grid
+      g.strokeStyle = 'rgba(20, 24, 33, 0.88)';
+      g.lineWidth = 2;
+      for (let x = 0; x < c.width; x += 8) {
+        g.beginPath(); g.moveTo(x, 18); g.lineTo(x, c.height); g.stroke();
+      }
+      for (let y = 18; y < c.height; y += 8) {
+        g.beginPath(); g.moveTo(0, y); g.lineTo(c.width, y); g.stroke();
+      }
+
+      // Heavy White Canvas Top Tape
+      g.fillStyle = '#ffffff';
+      g.fillRect(0, 0, c.width, 18);
+      // Center White Strap
+      g.fillRect(c.width / 2 - 6, 0, 12, c.height);
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.ClampToEdgeWrapping;
+      return tex;
+    }
+
+    // --- Procedural Optic Yellow Tennis Ball Seam Texture ---
+    function createTennisBallTexture() {
+      const c = document.createElement('canvas');
+      c.width = 256;
+      c.height = 128;
+      const g = c.getContext('2d');
+      g.fillStyle = '#d4ff00';
+      g.fillRect(0, 0, c.width, c.height);
+
+      // Felt fuzz texture
+      for (let i = 0; i < 4000; i++) {
+        g.fillStyle = Math.random() > 0.5 ? 'rgba(255,255,255,0.18)' : 'rgba(140,180,0,0.22)';
+        g.fillRect(Math.random() * c.width, Math.random() * c.height, 2, 2);
+      }
+
+      // White rubber curved seam
+      g.strokeStyle = '#ffffff';
+      g.lineWidth = 6;
+      g.beginPath();
+      for (let x = 0; x <= c.width; x += 4) {
+        const y = 64 + Math.sin((x / c.width) * Math.PI * 2) * 38;
+        if (x === 0) g.moveTo(x, y);
+        else g.lineTo(x, y);
+      }
+      g.stroke();
+      return new THREE.CanvasTexture(c);
+    }
+
+    // --- Build Stadium Lighting ---
+    const hemiLight = new THREE.HemisphereLight(0xdbeafe, 0x0f172a, 0.65);
+    scene.add(hemiLight);
+
+    // Main Shadow-Casting Stadium Floodlight Rig
+    const mainSpot = new THREE.DirectionalLight(0xfffbeb, 1.15);
+    mainSpot.position.set(85, 195, 95);
+    mainSpot.castShadow = true;
+    mainSpot.shadow.mapSize.width = 2048;
+    mainSpot.shadow.mapSize.height = 2048;
+    mainSpot.shadow.camera.near = 40;
+    mainSpot.shadow.camera.far = 480;
+    const d = 165;
+    mainSpot.shadow.camera.left = -d;
+    mainSpot.shadow.camera.right = d;
+    mainSpot.shadow.camera.top = d;
+    mainSpot.shadow.camera.bottom = -d;
+    mainSpot.shadow.bias = -0.0005;
+    scene.add(mainSpot);
+
+    // Back Rim Stadium Floodlight for Dramatic Silhouette Highlight
+    const rimLight = new THREE.DirectionalLight(0x38bdf8, 0.45);
+    rimLight.position.set(-90, 140, -160);
+    scene.add(rimLight);
+
+    // --- Build Court Floor ---
+    const courtGeo = new THREE.PlaneGeometry(160, 310);
+    const courtMat = new THREE.MeshStandardMaterial({
+      map: createAcrylicCourtTexture(),
+      roughness: 0.42,
+      metalness: 0.08
+    });
+    const courtMesh = new THREE.Mesh(courtGeo, courtMat);
+    courtMesh.rotation.x = -Math.PI / 2;
+    courtMesh.receiveShadow = true;
+    scene.add(courtMesh);
+
+    // Outer Stadium Concrete Floor
+    const arenaFloor = new THREE.Mesh(
+      new THREE.PlaneGeometry(900, 900),
+      new THREE.MeshStandardMaterial({ color: 0x060b16, roughness: 0.9 })
+    );
+    arenaFloor.rotation.x = -Math.PI / 2;
+    arenaFloor.position.y = -0.15;
+    scene.add(arenaFloor);
+
+    // --- Build 3D Net, Posts & Umpire Chair ---
+    const netWidth3D = to3DX(166) * 2;
+    const netHeight3D = to3DY(16);
+    const netGeo = new THREE.PlaneGeometry(netWidth3D, netHeight3D, 32, 1);
+    // Slight realistic tension sag in center of net
+    const posAttr = netGeo.attributes.position;
+    for (let i = 0; i < posAttr.count; i++) {
+      const vx = posAttr.getX(i);
+      const vy = posAttr.getY(i);
+      if (vy > 0) {
+        const sag = (1 - Math.pow(vx / (netWidth3D / 2), 2)) * 0.65;
+        posAttr.setY(i, vy - sag);
+      }
+    }
+    netGeo.computeVertexNormals();
+
+    const netMat = new THREE.MeshStandardMaterial({
+      map: createNetTexture(),
+      transparent: true,
+      alphaTest: 0.15,
+      side: THREE.DoubleSide,
+      roughness: 0.6
+    });
+    const netMesh = new THREE.Mesh(netGeo, netMat);
+    netMesh.position.set(0, netHeight3D / 2, 0);
+    netMesh.castShadow = true;
+    scene.add(netMesh);
+
+    // Metallic Net Posts
+    const postGeo = new THREE.CylinderGeometry(0.9, 0.9, netHeight3D + 1.2, 16);
+    const postMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8, roughness: 0.2 });
+    const leftPost = new THREE.Mesh(postGeo, postMat);
+    leftPost.position.set(-netWidth3D / 2, (netHeight3D + 1.2) / 2, 0);
+    leftPost.castShadow = true;
+    const rightPost = leftPost.clone();
+    rightPost.position.x = netWidth3D / 2;
+    scene.add(leftPost, rightPost);
+
+    // High Umpire Chair on Left Sideline
+    const umpireGroup = new THREE.Group();
+    const chairMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.5, roughness: 0.4 });
+    const leg1 = new THREE.Mesh(new THREE.BoxGeometry(1.2, 22, 1.2), chairMat);
+    leg1.position.set(-68, 11, -3);
+    const leg2 = leg1.clone(); leg2.position.z = 3;
+    const seat = new THREE.Mesh(new THREE.BoxGeometry(5, 1.5, 8), new THREE.MeshStandardMaterial({ color: 0x0284c7 }));
+    seat.position.set(-68, 22, 0);
+    const canopy = new THREE.Mesh(new THREE.BoxGeometry(7, 0.8, 10), chairMat);
+    canopy.position.set(-68, 32, 0);
+    umpireGroup.add(leg1, leg2, seat, canopy);
+    umpireGroup.traverse(o => { if (o.isMesh) o.castShadow = true; });
+    scene.add(umpireGroup);
+
+    // --- Build Surrounding Stadium Bowl, LED Ribbon & Floodlight Towers ---
+    function createLedBannerTexture() {
+      const c = document.createElement('canvas');
+      c.width = 1024;
+      c.height = 64;
+      const g = c.getContext('2d');
+      g.fillStyle = '#050814';
+      g.fillRect(0, 0, c.width, c.height);
+      g.strokeStyle = '#00f0ff';
+      g.lineWidth = 4;
+      g.strokeRect(0, 2, c.width, c.height - 4);
+      g.font = '900 28px system-ui, sans-serif';
+      g.fillStyle = '#d4ff00';
+      g.textAlign = 'center';
+      g.fillText('🎾 GRAND SLAM ARENA   •   HYPER-REAL 3D MOTION ENGINE   •   CHAMPIONSHIP COURT 🎾', c.width / 2, 42);
+      return new THREE.CanvasTexture(c);
+    }
+
+    const ledMat = new THREE.MeshBasicMaterial({ map: createLedBannerTexture() });
+    const backWallN = new THREE.Mesh(new THREE.BoxGeometry(170, 10, 2), ledMat);
+    backWallN.position.set(0, 5, -158);
+    const backWallS = backWallN.clone();
+    backWallS.position.set(0, 5, 158);
+    const sideWallW = new THREE.Mesh(new THREE.BoxGeometry(2, 10, 316), ledMat);
+    sideWallW.position.set(-82, 5, 0);
+    const sideWallE = sideWallW.clone();
+    sideWallE.position.set(82, 5, 0);
+    scene.add(backWallN, backWallS, sideWallW, sideWallE);
+
+    // 4 Stadium Floodlight Towers in the Night Sky
+    const towerCoords = [[-135, -210], [135, -210], [-135, 210], [135, 210]];
+    towerCoords.forEach(([tx, tz]) => {
+      const pole = new THREE.Mesh(
+        new THREE.CylinderGeometry(2, 3.5, 175, 12),
+        new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.7 })
+      );
+      pole.position.set(tx, 87.5, tz);
+      scene.add(pole);
+
+      const head = new THREE.Mesh(
+        new THREE.BoxGeometry(26, 10, 4),
+        new THREE.MeshBasicMaterial({ color: 0xfffbeb })
+      );
+      head.position.set(tx, 176, tz);
+      head.lookAt(0, 0, 0);
+      scene.add(head);
+    });
+
+    // --- Build Articulated 3D Athletes & Strung 3D Rackets ---
+    function create3DRacket(frameColorHex) {
+      const racketGroup = new THREE.Group();
+
+      // Grip Handle
+      const handle = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.42, 0.48, 5.2, 8),
+        new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.8 })
+      );
+      handle.position.y = 2.6;
+      racketGroup.add(handle);
+
+      // Graphite V-Throat
+      const throatMat = new THREE.MeshStandardMaterial({
+        color: frameColorHex,
+        metalness: 0.65,
+        roughness: 0.25,
+        emissive: frameColorHex,
+        emissiveIntensity: 0.2
+      });
+      const throatL = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.32, 3.8, 8), throatMat);
+      throatL.position.set(-1.1, 6.4, 0);
+      throatL.rotation.z = 0.32;
+      const throatR = throatL.clone();
+      throatR.position.x = 1.1;
+      throatR.rotation.z = -0.32;
+      racketGroup.add(throatL, throatR);
+
+      // Oval Racket Head Hoop
+      const hoop = new THREE.Mesh(
+        new THREE.TorusGeometry(4.2, 0.36, 10, 28),
+        throatMat
+      );
+      hoop.scale.set(0.82, 1.12, 1);
+      hoop.position.y = 12.2;
+      racketGroup.add(hoop);
+
+      // Translucent String Bed
+      const stringBed = new THREE.Mesh(
+        new THREE.CircleGeometry(4.0, 24),
+        new THREE.MeshBasicMaterial({
+          color: 0xffffff,
+          transparent: true,
+          opacity: 0.24,
+          side: THREE.DoubleSide,
+          wireframe: true
+        })
+      );
+      stringBed.scale.set(0.8, 1.1, 1);
+      stringBed.position.y = 12.2;
+      racketGroup.add(stringBed);
+
+      return { group: racketGroup, frameMat: throatMat };
+    }
+
+    function createArticulatedAthlete(jerseyColor, shortsColor, isNearPlayer) {
+      const root = new THREE.Group();
+
+      const skinMat = new THREE.MeshStandardMaterial({ color: 0xe0ac69, roughness: 0.55 });
+      const jerseyMat = new THREE.MeshStandardMaterial({
+        color: jerseyColor,
+        roughness: 0.4,
+        transparent: isNearPlayer,
+        opacity: isNearPlayer ? 0.82 : 1.0
+      });
+      const shortsMat = new THREE.MeshStandardMaterial({
+        color: shortsColor,
+        roughness: 0.5,
+        transparent: isNearPlayer,
+        opacity: isNearPlayer ? 0.82 : 1.0
+      });
+      const shoeMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 });
+
+      // Upper Body / Torso Pivot (Coils on Forehand/Backhand prep)
+      const torsoPivot = new THREE.Group();
+      torsoPivot.position.y = 9.5;
+      root.add(torsoPivot);
+
+      const torso = new THREE.Mesh(new THREE.BoxGeometry(5.8, 7.6, 3.2), jerseyMat);
+      torso.position.y = 3.8;
+      torso.castShadow = true;
+      torsoPivot.add(torso);
+
+      const shorts = new THREE.Mesh(new THREE.BoxGeometry(5.6, 3.4, 3.3), shortsMat);
+      shorts.position.y = -0.6;
+      shorts.castShadow = true;
+      torsoPivot.add(shorts);
+
+      // Head + Athletic Visor Cap
+      const head = new THREE.Mesh(new THREE.SphereGeometry(2.25, 18, 18), skinMat);
+      head.position.y = 9.8;
+      head.castShadow = true;
+      torsoPivot.add(head);
+
+      const capBand = new THREE.Mesh(
+        new THREE.CylinderGeometry(2.32, 2.32, 0.9, 18),
+        new THREE.MeshStandardMaterial({ color: 0xd4ff00 })
+      );
+      capBand.position.y = 10.4;
+      torsoPivot.add(capBand);
+
+      // Playing Arm + 3D Racket
+      const armPivot = new THREE.Group();
+      armPivot.position.set(3.6, 6.6, 0);
+      torsoPivot.add(armPivot);
+
+      const armMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.65, 6.2, 10), skinMat);
+      armMesh.position.y = -2.4;
+      armMesh.castShadow = true;
+      armPivot.add(armMesh);
+
+      const racketObj = create3DRacket(isNearPlayer ? 0x00f0ff : 0xf43f5e);
+      racketObj.group.position.set(0, -5.0, 0.8);
+      racketObj.group.rotation.x = Math.PI / 2.4;
+      armPivot.add(racketObj.group);
+
+      // Left & Right Legs for Footwork Stride Animation
+      const legL = new THREE.Group();
+      legL.position.set(-1.6, 8.2, 0);
+      const legMeshL = new THREE.Mesh(new THREE.CylinderGeometry(1.0, 0.75, 7.2, 10), skinMat);
+      legMeshL.position.y = -3.6;
+      legMeshL.castShadow = true;
+      const shoeL = new THREE.Mesh(new THREE.BoxGeometry(1.9, 1.3, 3.2), shoeMat);
+      shoeL.position.set(0, -7.4, 0.5);
+      shoeL.castShadow = true;
+      legL.add(legMeshL, shoeL);
+      root.add(legL);
+
+      const legR = legL.clone();
+      legR.position.x = 1.6;
+      root.add(legR);
+
+      return { root, torsoPivot, armPivot, racketObj, legL, legR, jerseyMat };
+    }
+
+    const player3D = createArticulatedAthlete(0x0284c7, 0x0f172a, true);
+    scene.add(player3D.root);
+
+    const ai3D = createArticulatedAthlete(0xe11d48, 0x1e293b, false);
+    scene.add(ai3D.root);
+
+    // --- 3D Fuzzy Felt Tennis Ball, Trail & Court Bounce Marks ---
+    const ballMesh = new THREE.Mesh(
+      new THREE.SphereGeometry(1.55, 24, 24),
+      new THREE.MeshStandardMaterial({
+        map: createTennisBallTexture(),
+        roughness: 0.7,
+        emissive: 0xccff00,
+        emissiveIntensity: 0.18
+      })
+    );
+    ballMesh.castShadow = true;
+    scene.add(ballMesh);
+
+    // 3D Ball Trail Spheres
+    const MAX_TRAIL = 14;
+    const trailMeshes = [];
+    const trailGeo = new THREE.SphereGeometry(1.1, 10, 10);
+    for (let i = 0; i < MAX_TRAIL; i++) {
+      const m = new THREE.Mesh(
+        trailGeo,
+        new THREE.MeshBasicMaterial({ color: 0xd4ff00, transparent: true, opacity: 0 })
+      );
+      scene.add(m);
+      trailMeshes.push(m);
+    }
+
+    // Court Bounce Ring & Skid Marks Pool
+    const bounceMarks = [];
+    function spawnBounceMark3D(wx, wz, isCleanBoost) {
+      const ringGeo = new THREE.RingGeometry(0.4, 2.2, 24);
+      const ringMat = new THREE.MeshBasicMaterial({
+        color: isCleanBoost ? 0x00f0ff : 0xd4ff00,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.85
+      });
+      const ring = new THREE.Mesh(ringGeo, ringMat);
+      ring.rotation.x = -Math.PI / 2;
+      ring.position.set(to3DX(wx), 0.08, to3DZ(wz));
+      scene.add(ring);
+      bounceMarks.push({ mesh: ring, age: 0 });
+    }
+
+    // 3D String Impact Spark Particles
+    const impactParticles = [];
+    const sparkGeo = new THREE.SphereGeometry(0.45, 6, 6);
+    function spawnHitSparks3D(wx, wy, wz, colorHex, count = 14) {
+      const originX = to3DX(wx);
+      const originY = to3DY(wy);
+      const originZ = to3DZ(wz);
+      for (let i = 0; i < count; i++) {
+        const mat = new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 1 });
+        const p = new THREE.Mesh(sparkGeo, mat);
+        p.position.set(originX, originY, originZ);
+        scene.add(p);
+        impactParticles.push({
+          mesh: p,
+          vx: (Math.random() - 0.5) * 2.4,
+          vy: (Math.random() - 0.2) * 2.2,
+          vz: (Math.random() - 0.5) * 2.4,
+          life: 1.0
+        });
+      }
+    }
+
+    /******************************************************************
+     * 5. TENNIS PHYSICS & FOREHAND / BACKHAND BONUS ENGINE
+     ******************************************************************/
     const COURT = { widthNear: 360, netZ: 50, netHeight: 16 };
+    let cameraShake = 0;
 
     const scoreState = {
       points: ['0', '15', '30', '40'],
@@ -1098,20 +1720,22 @@
       bannerText: 'SWING PHONE OR SWIPE TO SERVE!',
       shotFeedback: '',
       shotFeedbackSub: '',
-      shotFeedbackColor: '#ccff00',
+      shotFeedbackColor: '#d4ff00',
       shotFeedbackTimer: 0
     };
 
     const player = {
       x: 0,
+      prevX: 0,
       targetX: 0,
       z: 4,
       swingAnim: 0,
       swingCooldown: 0,
       racketSide: 1,
-      awkwardReachTimer: 0
+      awkwardReachTimer: 0,
+      stridePhase: 0
     };
-    const ai = { x: 0, z: 96, speed: 2.35, swingAnim: 0 };
+    const ai = { x: 0, prevX: 0, z: 96, speed: 2.35, swingAnim: 0, stridePhase: 0 };
     const ball = {
       x: 15,
       y: 24,
@@ -1142,11 +1766,11 @@
       scoreState.bannerText = 'SWING PHONE OR SWIPE TO SERVE!';
     }
 
-    function showFeedback(text, subText = '', color = '#ccff00') {
+    function showFeedback(text, subText = '', color = '#d4ff00') {
       scoreState.shotFeedback = text;
       scoreState.shotFeedbackSub = subText;
       scoreState.shotFeedbackColor = color;
-      scoreState.shotFeedbackTimer = 62;
+      scoreState.shotFeedbackTimer = 64;
     }
 
     function triggerPlayerSwing(power = 1.0, aimOverride = null, explicitStroke = null) {
@@ -1170,11 +1794,13 @@
         ball.bounces = 0;
         ball.lastHitter = 'PLAYER';
         ball.isBoosted = power > 1.2;
+        cameraShake = 0.8;
         sfx.playHit(power, 'CLEAN');
+        spawnHitSparks3D(ball.x, ball.y, ball.z, 0xd4ff00, 16);
         showFeedback(
           power > 1.25 ? '⚡ POWER SERVE!' : 'CLEAN SERVE!',
           `${swingStroke} MOTION`,
-          '#ccff00'
+          '#d4ff00'
         );
         return;
       }
@@ -1201,9 +1827,12 @@
           }
           targetX = Math.max(-134, Math.min(134, targetX));
           ball.isBoosted = true;
+          cameraShake = 1.15;
           sfx.playHit(effectivePower, 'CLEAN');
 
-          const strokeColor = swingStroke === 'FOREHAND' ? '#22d3ee' : '#c084fc';
+          const strokeColor = swingStroke === 'FOREHAND' ? '#00f0ff' : '#c084fc';
+          const sparkHex = swingStroke === 'FOREHAND' ? 0x00f0ff : 0xc084fc;
+          spawnHitSparks3D(ball.x, ball.y, ball.z, sparkHex, 20);
           showFeedback(
             `⚡ CLEAN ${swingStroke}!`,
             '1.2x POWER BONUS',
@@ -1216,6 +1845,7 @@
           ball.isBoosted = false;
           player.awkwardReachTimer = 28;
           sfx.playHit(effectivePower, 'AWKWARD');
+          spawnHitSparks3D(ball.x, ball.y, ball.z, 0xf59e0b, 8);
 
           showFeedback(
             '⚠️ AWKWARD REACH!',
@@ -1227,22 +1857,20 @@
         const flightFrames = 56 / Math.min(1.5, Math.max(0.72, effectivePower));
         ball.vz = (94 - ball.z) / flightFrames;
         ball.vx = (targetX - ball.x) / flightFrames;
-        ball.vy = (0.5 * ball.gravity * flightFrames) - (ball.y / framesOf(flightFrames)) + extraLoft;
+        ball.vy = (0.5 * ball.gravity * flightFrames) - (ball.y / flightFrames) + extraLoft;
 
         ball.bounces = 0;
         ball.lastHitter = 'PLAYER';
       }
     }
 
-    function framesOf(f) { return f || 56; }
-
     function awardPoint(winner) {
       if (winner === 'PLAYER') {
         scoreState.pIdx++;
-        sfx.playScoreTone(true);
+        sfx.playCrowdApplause(true);
       } else {
         scoreState.aiIdx++;
-        sfx.playScoreTone(false);
+        sfx.playCrowdApplause(false);
       }
 
       if (scoreState.pIdx >= 4 && scoreState.pIdx - scoreState.aiIdx >= 2) {
@@ -1273,18 +1901,18 @@
     }
 
     /******************************************************************
-     * 5. DIRECTIONAL TOUCH SWIPE & MOUSE CONTROLS
+     * 6. DIRECTIONAL TOUCH SWIPE & MOUSE CONTROLS
      ******************************************************************/
     let pointerDown = false;
     let pointerStart = { x: 0, y: 0, time: 0 };
 
-    canvas.addEventListener('pointerdown', (e) => {
+    hudCanvas.addEventListener('pointerdown', (e) => {
       sfx.init();
       pointerDown = true;
       pointerStart = { x: e.clientX, y: e.clientY, time: performance.now() };
     });
 
-    canvas.addEventListener('pointermove', (e) => {
+    hudCanvas.addEventListener('pointermove', (e) => {
       if (motionState.eventsReceived === 0 && (!peerConn || !peerConn.open)) {
         const normX = (e.clientX / window.innerWidth) * 2 - 1;
         player.targetX = normX * 145;
@@ -1296,7 +1924,7 @@
       }
     });
 
-    canvas.addEventListener('pointerup', (e) => {
+    hudCanvas.addEventListener('pointerup', (e) => {
       if (!pointerDown) return;
       pointerDown = false;
       const dx = e.clientX - pointerStart.x;
@@ -1323,28 +1951,30 @@
     });
 
     /******************************************************************
-     * 6. 3D COURT PROJECTION & RENDER LOOP
+     * 7. PHYSICS UPDATE, 3D SCENE SYNC & 2D BROADCAST HUD PROJECTION
      ******************************************************************/
-    function project3D(worldX, worldY, worldZ) {
-      const w = canvas.width;
-      const h = canvas.height;
-      const horizonY = h * 0.27;
-      const nearY = h * 0.84;
-      const depth = worldZ / 100;
-      const perspectiveScale = 1 / (1 + depth * 1.35);
-
-      const screenX = (w / 2) + (worldX * (w / 440) * perspectiveScale * 1.35);
-      const groundY = nearY - (nearY - horizonY) * (1 - perspectiveScale) * 1.65;
-      const screenY = groundY - (worldY * perspectiveScale * (h / 260));
-      return { x: screenX, y: screenY, groundY, scale: perspectiveScale };
+    function onWindowResize() {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+      hudCanvas.width = w;
+      hudCanvas.height = h;
     }
+    window.addEventListener('resize', onWindowResize);
+    onWindowResize();
 
     function updatePhysics() {
       if (player.swingCooldown > 0) player.swingCooldown--;
-      if (player.swingAnim > 0) player.swingAnim = Math.max(0, player.swingAnim - 0.08);
+      if (player.swingAnim > 0) player.swingAnim = Math.max(0, player.swingAnim - 0.075);
       if (player.awkwardReachTimer > 0) player.awkwardReachTimer--;
-      if (ai.swingAnim > 0) ai.swingAnim = Math.max(0, ai.swingAnim - 0.08);
+      if (ai.swingAnim > 0) ai.swingAnim = Math.max(0, ai.swingAnim - 0.075);
       if (scoreState.shotFeedbackTimer > 0) scoreState.shotFeedbackTimer--;
+      if (cameraShake > 0) cameraShake = Math.max(0, cameraShake - 0.08);
+
+      player.prevX = player.x;
+      ai.prevX = ai.x;
 
       if (!scoreState.waitingForServe) {
         const desiredStanceOffset = -player.racketSide * 18;
@@ -1366,32 +1996,38 @@
       ball.y += ball.vy;
       ball.z += ball.vz;
       ball.vy -= ball.gravity;
+      ballMesh.rotation.x += ball.vz * 0.15;
+      ballMesh.rotation.z -= ball.vx * 0.15;
 
       ball.trail.push({ x: ball.x, y: ball.y, z: ball.z, boosted: ball.isBoosted });
-      if (ball.trail.length > 12) ball.trail.shift();
+      if (ball.trail.length > MAX_TRAIL) ball.trail.shift();
 
+      // Net Collision
       if ((ball.z - ball.vz < COURT.netZ && ball.z >= COURT.netZ) ||
           (ball.z - ball.vz > COURT.netZ && ball.z <= COURT.netZ)) {
         if (ball.y < COURT.netHeight) {
           sfx.playBounce();
+          spawnHitSparks3D(ball.x, ball.y, COURT.netZ, 0xef4444, 12);
           showFeedback('NET!', '', '#ef4444');
           awardPoint(ball.lastHitter === 'PLAYER' ? 'AI' : 'PLAYER');
           return;
         }
       }
 
+      // Ground Bounce
       if (ball.y <= 0) {
         ball.y = 0;
         ball.vy = Math.abs(ball.vy) * 0.75;
         ball.bounces++;
         sfx.playBounce();
+        spawnBounceMark3D(ball.x, ball.z, ball.isBoosted);
 
         if (ball.bounces === 1) {
           const outWide = Math.abs(ball.x) > 152;
           const outLong = (ball.lastHitter === 'PLAYER' && ball.z > 104) ||
                           (ball.lastHitter === 'AI' && ball.z < -4);
           if (outWide || outLong) {
-            showFeedback('OUT!', '', '#ef4444');
+            showFeedback('OUT!', 'HAWKEYE CALL: OUT', '#ef4444');
             awardPoint(ball.lastHitter === 'PLAYER' ? 'AI' : 'PLAYER');
             return;
           }
@@ -1405,6 +2041,7 @@
       if (ball.z < -22) { awardPoint(ball.bounces >= 1 ? 'AI' : 'PLAYER'); return; }
       if (ball.z > 122) { awardPoint(ball.bounces >= 1 ? 'PLAYER' : 'AI'); return; }
 
+      // AI Opponent
       if (ball.vz > 0) {
         const diff = ball.x - ai.x;
         ai.x += Math.sign(diff) * Math.min(Math.abs(diff), ai.speed);
@@ -1419,217 +2056,197 @@
           ball.isBoosted = false;
           ball.lastHitter = 'AI';
           sfx.playHit(0.95);
+          spawnHitSparks3D(ball.x, ball.y, ball.z, 0xf43f5e, 10);
         }
       } else {
         ai.x += (0 - ai.x) * 0.05;
       }
     }
 
-    function drawRacket(screenX, screenY, scale, swingProgress, side = 1, isPlayer = true, strokeType = 'FOREHAND') {
-      ctx.save();
-      ctx.translate(screenX, screenY);
-      const baseAngle = side * 0.45 - (swingProgress * side * 1.65);
-      ctx.rotate(baseAngle);
-      ctx.scale(scale, scale);
+    function sync3DScene() {
+      // 1. Sync Near Player 3D Rig
+      const px3 = to3DX(player.x);
+      const pz3 = to3DZ(player.z);
+      player3D.root.position.set(px3, 0, pz3);
 
-      ctx.strokeStyle = '#e2e8f0';
-      ctx.lineWidth = 6;
-      ctx.beginPath();
-      ctx.moveTo(0, 15);
-      ctx.lineTo(0, -18);
-      ctx.stroke();
+      const pVelX = player.x - player.prevX;
+      player.stridePhase += Math.abs(pVelX) * 0.25;
+      const pStride = Math.sin(player.stridePhase) * Math.min(0.6, Math.abs(pVelX) * 0.15);
+      player3D.legL.rotation.x = pStride;
+      player3D.legR.rotation.x = -pStride;
+      player3D.root.rotation.z = -pVelX * 0.025; // Athletic lean into movement
 
-      if (isPlayer) {
-        ctx.strokeStyle = strokeType === 'FOREHAND' ? '#22d3ee' : '#c084fc';
-      } else {
-        ctx.strokeStyle = '#f43f5e';
+      // Switch racket side & torso coil based on Forehand / Backhand stance
+      const sideSign = player.racketSide;
+      player3D.armPivot.position.x = sideSign * 3.6;
+      const swingArc = Math.sin(player.swingAnim * Math.PI);
+      player3D.torsoPivot.rotation.y = -sideSign * 0.38 + (swingArc * sideSign * 1.15);
+      player3D.armPivot.rotation.x = -0.35 + swingArc * 1.5;
+      player3D.armPivot.rotation.z = sideSign * (0.45 - swingArc * 0.9);
+
+      // Update racket neon frame glow for FH (Cyan) vs BH (Purple)
+      const isFH = motionState.currentStance === 'FOREHAND';
+      player3D.racketObj.frameMat.color.setHex(isFH ? 0x00f0ff : 0xc084fc);
+      player3D.racketObj.frameMat.emissive.setHex(isFH ? 0x00f0ff : 0xc084fc);
+      player3D.jerseyMat.color.setHex(player.awkwardReachTimer > 0 ? 0xf59e0b : 0x0284c7);
+
+      // 2. Sync Far AI Opponent 3D Rig
+      const aix3 = to3DX(ai.x);
+      const aiz3 = to3DZ(ai.z);
+      ai3D.root.position.set(aix3, 0, aiz3);
+      ai3D.root.rotation.y = Math.PI; // Face toward player
+
+      const aiVelX = ai.x - ai.prevX;
+      ai.stridePhase += Math.abs(aiVelX) * 0.25;
+      const aiStride = Math.sin(ai.stridePhase) * Math.min(0.6, Math.abs(aiVelX) * 0.15);
+      ai3D.legL.rotation.x = aiStride;
+      ai3D.legR.rotation.x = -aiStride;
+      const aiSwingArc = Math.sin(ai.swingAnim * Math.PI);
+      ai3D.torsoPivot.rotation.y = -0.35 + aiSwingArc * 1.1;
+      ai3D.armPivot.rotation.x = -0.35 + aiSwingArc * 1.4;
+
+      // 3. Sync Ball & 3D Trail
+      ballMesh.position.set(to3DX(ball.x), Math.max(1.5, to3DY(ball.y)), to3DZ(ball.z));
+
+      for (let i = 0; i < MAX_TRAIL; i++) {
+        const tm = trailMeshes[i];
+        if (i < ball.trail.length) {
+          const t = ball.trail[i];
+          tm.position.set(to3DX(t.x), Math.max(1.2, to3DY(t.y)), to3DZ(t.z));
+          const ratio = (i + 1) / ball.trail.length;
+          tm.scale.setScalar(ratio * 0.85);
+          tm.material.color.setHex(t.boosted ? 0x00f0ff : 0xd4ff00);
+          tm.material.opacity = ratio * 0.48;
+        } else {
+          tm.material.opacity = 0;
+        }
       }
-      ctx.lineWidth = 5;
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
-      ctx.beginPath();
-      ctx.ellipse(0, -45, 22, 28, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-      ctx.restore();
+
+      // 4. Update Bounce Rings & 3D Sparks
+      for (let i = bounceMarks.length - 1; i >= 0; i--) {
+        const bm = bounceMarks[i];
+        bm.age++;
+        bm.mesh.scale.setScalar(1 + bm.age * 0.035);
+        bm.mesh.material.opacity = Math.max(0, 0.85 - bm.age * 0.018);
+        if (bm.age > 45) {
+          scene.remove(bm.mesh);
+          bounceMarks.splice(i, 1);
+        }
+      }
+
+      for (let i = impactParticles.length - 1; i >= 0; i--) {
+        const p = impactParticles[i];
+        p.mesh.position.x += p.vx;
+        p.mesh.position.y += p.vy;
+        p.mesh.position.z += p.vz;
+        p.vy -= 0.08;
+        p.life -= 0.045;
+        p.mesh.material.opacity = Math.max(0, p.life);
+        if (p.life <= 0) {
+          scene.remove(p.mesh);
+          impactParticles.splice(i, 1);
+        }
+      }
+
+      // 5. Dynamic Broadcast Camera Tracking
+      const camTargetX = px3 * 0.28;
+      const shakeX = (Math.random() - 0.5) * cameraShake * 2.2;
+      const shakeY = (Math.random() - 0.5) * cameraShake * 2.2;
+      camera.position.x += (camTargetX - camera.position.x) * 0.08 + shakeX;
+      camera.position.y = 74 + shakeY;
+      camera.position.z = 178;
+      camera.lookAt(px3 * 0.12, 6, -12);
     }
 
-    function render() {
-      const w = canvas.width;
-      const h = canvas.height;
+    const tempVec = new THREE.Vector3();
+    function renderBroadcastHUD() {
+      const w = hudCanvas.width;
+      const h = hudCanvas.height;
+      hudCtx.clearRect(0, 0, w, h);
 
-      const bgGrad = ctx.createLinearGradient(0, 0, 0, h);
-      bgGrad.addColorStop(0, '#090d16');
-      bgGrad.addColorStop(0.28, '#1e293b');
-      bgGrad.addColorStop(0.28, '#15803d');
-      bgGrad.addColorStop(1, '#14532d');
-      ctx.fillStyle = bgGrad;
-      ctx.fillRect(0, 0, w, h);
+      // Project 3D Ball into 2D Screen Coordinates for Target Reticle (`FH` / `BH`)
+      if (!scoreState.waitingForServe && ball.vz < 0 && ball.z < 55 && ball.z > -10) {
+        tempVec.copy(ballMesh.position);
+        tempVec.project(camera);
+        const sx = (tempVec.x * 0.5 + 0.5) * w;
+        const sy = (-(tempVec.y * 0.5) + 0.5) * h;
 
-      const cTL = project3D(-150, 0, 100);
-      const cTR = project3D(150, 0, 100);
-      const cBR = project3D(150, 0, 0);
-      const cBL = project3D(-150, 0, 0);
-
-      ctx.fillStyle = '#1d4ed8';
-      ctx.beginPath();
-      ctx.moveTo(cTL.x, cTL.groundY);
-      ctx.lineTo(cTR.x, cTR.groundY);
-      ctx.lineTo(cBR.x, cBR.groundY);
-      ctx.lineTo(cBL.x, cBL.groundY);
-      ctx.closePath();
-      ctx.fill();
-
-      ctx.strokeStyle = 'rgba(255,255,255,0.9)';
-      ctx.lineWidth = 2;
-      function drawLine3D(x1, z1, x2, z2) {
-        const p1 = project3D(x1, 0, z1);
-        const p2 = project3D(x2, 0, z2);
-        ctx.beginPath();
-        ctx.moveTo(p1.x, p1.groundY);
-        ctx.lineTo(p2.x, p2.groundY);
-        ctx.stroke();
-      }
-      drawLine3D(-150, 0, -150, 100);
-      drawLine3D(150, 0, 150, 100);
-      drawLine3D(-115, 0, -115, 100);
-      drawLine3D(115, 0, 115, 100);
-      drawLine3D(-150, 0, 150, 0);
-      drawLine3D(-150, 100, 150, 100);
-      drawLine3D(-115, 24, 115, 24);
-      drawLine3D(-115, 76, 115, 76);
-      drawLine3D(0, 24, 0, 76);
-
-      const netLBottom = project3D(-165, 0, 50);
-      const netRBottom = project3D(165, 0, 50);
-      const netLTop = project3D(-165, COURT.netHeight, 50);
-      const netRTop = project3D(165, COURT.netHeight, 50);
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.55)';
-      ctx.beginPath();
-      ctx.moveTo(netLTop.x, netLTop.y);
-      ctx.lineTo(netRTop.x, netRTop.y);
-      ctx.lineTo(netRBottom.x, netRBottom.groundY);
-      ctx.lineTo(netLBottom.x, netLBottom.groundY);
-      ctx.closePath();
-      ctx.fill();
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 3.5;
-      ctx.beginPath();
-      ctx.moveTo(netLTop.x, netLTop.y);
-      ctx.lineTo(netRTop.x, netRTop.y);
-      ctx.stroke();
-
-      const aiPos = project3D(ai.x, 0, ai.z);
-      ctx.fillStyle = '#f43f5e';
-      ctx.beginPath();
-      ctx.roundRect(aiPos.x - 14 * aiPos.scale, aiPos.groundY - 58 * aiPos.scale, 28 * aiPos.scale, 42 * aiPos.scale, 8);
-      ctx.fill();
-      ctx.fillStyle = '#fde047';
-      ctx.beginPath();
-      ctx.arc(aiPos.x, aiPos.groundY - 72 * aiPos.scale, 12 * aiPos.scale, 0, Math.PI * 2);
-      ctx.fill();
-      drawRacket(aiPos.x + 22 * aiPos.scale, aiPos.groundY - 35 * aiPos.scale, aiPos.scale * 0.9, ai.swingAnim, 1, false);
-
-      for (let i = 0; i < ball.trail.length; i++) {
-        const t = ball.trail[i];
-        const tp = project3D(t.x, t.y, t.z);
-        const alpha = (i / ball.trail.length) * 0.5;
-        ctx.fillStyle = t.boosted
-          ? `rgba(34, 211, 238, ${alpha})`
-          : `rgba(204, 255, 0, ${alpha})`;
-        ctx.beginPath();
-        ctx.arc(tp.x, tp.y, Math.max(2, 9 * tp.scale * (i / ball.trail.length)), 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      const ballShadow = project3D(ball.x, 0, ball.z);
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
-      ctx.beginPath();
-      const shadowRad = Math.max(3, 12 * ballShadow.scale * (1 - ball.y / 90));
-      ctx.ellipse(ballShadow.x, ballShadow.groundY, shadowRad, shadowRad * 0.45, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      const ballPos = project3D(ball.x, ball.y, ball.z);
-      const ballRadius = Math.max(5, 11 * ballPos.scale);
-      ctx.fillStyle = '#ccff00';
-      ctx.beginPath();
-      ctx.arc(ballPos.x, ballPos.y, ballRadius, 0, Math.PI * 2);
-      ctx.fill();
-
-      if (!scoreState.waitingForServe && ball.vz < 0 && ball.z < 52 && ball.z > -10) {
         const reqStroke = getRequiredStrokeForBall(ball.x, player.x);
-        const ringColor = reqStroke === 'FOREHAND' ? '#22d3ee' : '#c084fc';
-        ctx.strokeStyle = ringColor;
-        ctx.lineWidth = 3.5;
-        ctx.beginPath();
-        ctx.arc(ballPos.x, ballPos.y, ballRadius + 12, 0, Math.PI * 2);
-        ctx.stroke();
+        const ringColor = reqStroke === 'FOREHAND' ? '#00f0ff' : '#c084fc';
+        const pulseRadius = 24 + Math.sin(performance.now() * 0.015) * 4;
 
-        ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-        ctx.beginPath();
-        ctx.roundRect(ballPos.x - 18, ballPos.y - ballRadius - 30, 36, 18, 5);
-        ctx.fill();
-        ctx.fillStyle = ringColor;
-        ctx.font = '800 11px system-ui, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(reqStroke === 'FOREHAND' ? 'FH' : 'BH', ballPos.x, ballPos.y - ballRadius - 17);
+        hudCtx.save();
+        hudCtx.strokeStyle = ringColor;
+        hudCtx.lineWidth = 3;
+        hudCtx.shadowColor = ringColor;
+        hudCtx.shadowBlur = 12;
+        hudCtx.beginPath();
+        hudCtx.arc(sx, sy, pulseRadius, 0, Math.PI * 2);
+        hudCtx.stroke();
+
+        // Badge Pill above Reticle
+        hudCtx.fillStyle = 'rgba(5, 8, 17, 0.88)';
+        hudCtx.beginPath();
+        hudCtx.roundRect(sx - 20, sy - pulseRadius - 26, 40, 20, 6);
+        hudCtx.fill();
+
+        hudCtx.fillStyle = ringColor;
+        hudCtx.font = '900 11px system-ui, sans-serif';
+        hudCtx.textAlign = 'center';
+        hudCtx.fillText(reqStroke === 'FOREHAND' ? 'FH' : 'BH', sx, sy - pulseRadius - 12);
+        hudCtx.restore();
       }
 
-      const pPos = project3D(player.x, 0, player.z);
-      ctx.fillStyle = player.awkwardReachTimer > 0
-        ? 'rgba(245, 158, 11, 0.55)'
-        : 'rgba(56, 189, 248, 0.4)';
-      ctx.beginPath();
-      ctx.roundRect(pPos.x - 18 * pPos.scale, pPos.groundY - 64 * pPos.scale, 36 * pPos.scale, 48 * pPos.scale, 10);
-      ctx.fill();
-
-      drawRacket(
-        pPos.x + player.racketSide * 34 * pPos.scale,
-        pPos.groundY - 36 * pPos.scale,
-        pPos.scale * 1.15,
-        player.swingAnim,
-        player.racketSide,
-        true,
-        motionState.currentStance
-      );
-
+      // Serve Callout Banner
       if (scoreState.waitingForServe) {
-        ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-        ctx.beginPath();
-        ctx.roundRect(w / 2 - 175, h * 0.16, 350, 40, 10);
-        ctx.fill();
-        ctx.fillStyle = '#ccff00';
-        ctx.font = '700 14px system-ui, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(scoreState.bannerText, w / 2, h * 0.16 + 25);
+        hudCtx.save();
+        hudCtx.fillStyle = 'rgba(9, 14, 28, 0.86)';
+        hudCtx.strokeStyle = 'rgba(212, 255, 0, 0.45)';
+        hudCtx.lineWidth = 1.5;
+        hudCtx.beginPath();
+        hudCtx.roundRect(w / 2 - 180, h * 0.16, 360, 42, 12);
+        hudCtx.fill();
+        hudCtx.stroke();
+
+        hudCtx.fillStyle = '#d4ff00';
+        hudCtx.font = '800 14px system-ui, sans-serif';
+        hudCtx.textAlign = 'center';
+        hudCtx.fillText(scoreState.bannerText, w / 2, h * 0.16 + 26);
+        hudCtx.restore();
       }
 
+      // Broadcast Shot Feedback Popup
       if (scoreState.shotFeedbackTimer > 0) {
-        ctx.save();
-        const yAnim = h * 0.41 - (62 - scoreState.shotFeedbackTimer) * 0.5;
-        ctx.font = '900 26px system-ui, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillStyle = scoreState.shotFeedbackColor;
-        ctx.fillText(scoreState.shotFeedback, w / 2, yAnim);
+        hudCtx.save();
+        const yAnim = h * 0.38 - (64 - scoreState.shotFeedbackTimer) * 0.55;
+        hudCtx.font = '900 28px system-ui, sans-serif';
+        hudCtx.textAlign = 'center';
+        hudCtx.fillStyle = scoreState.shotFeedbackColor;
+        hudCtx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+        hudCtx.shadowBlur = 14;
+        hudCtx.fillText(scoreState.shotFeedback, w / 2, yAnim);
 
         if (scoreState.shotFeedbackSub) {
-          ctx.font = '700 13px system-ui, sans-serif';
-          ctx.fillStyle = '#f8fafc';
-          ctx.fillText(scoreState.shotFeedbackSub, w / 2, yAnim + 20);
+          hudCtx.font = '800 13px system-ui, sans-serif';
+          hudCtx.fillStyle = '#f8fafc';
+          hudCtx.fillText(scoreState.shotFeedbackSub, w / 2, yAnim + 22);
         }
-        ctx.restore();
+        hudCtx.restore();
       }
     }
 
     function gameLoop() {
       if (!isControllerOnlyMode) {
         updatePhysics();
-        render();
+        sync3DScene();
+        renderer.render(scene, camera);
+        renderBroadcastHUD();
       }
       requestAnimationFrame(gameLoop);
     }
 
     /******************************************************************
-     * 7. UI EVENT BINDINGS & URL ?room= AUTO-JOIN CHECK
+     * 8. UI EVENT BINDINGS & URL ?room= AUTO-JOIN CHECK
      ******************************************************************/
     function toggleHandedness() {
       motionState.handedness = motionState.handedness === 'RIGHT' ? 'LEFT' : 'RIGHT';
@@ -1648,7 +2265,7 @@
       const ok = await enableMotionSensors();
       if (ok) {
         document.getElementById('sensorDot').classList.add('live');
-        document.getElementById('sensorStatusText').textContent = 'Smart FH/BH Motion Active';
+        document.getElementById('sensorStatusText').textContent = '3D Smart FH/BH Motion Active';
       }
     });
 
@@ -1718,7 +2335,6 @@
 
     document.getElementById('btnExitController').addEventListener('click', () => {
       isControllerOnlyMode = false;
-      // Strip ?room= from URL if exiting controller mode
       if (window.history && window.history.replaceState) {
         window.history.replaceState({}, document.title, getCleanBaseUrl());
       }
@@ -1726,7 +2342,6 @@
       document.getElementById('menuModal').classList.remove('hidden');
     });
 
-    // Auto-check URL parameters on load for QR Code scans (?room=ABCD)
     window.addEventListener('DOMContentLoaded', () => {
       const params = new URLSearchParams(window.location.search);
       const autoRoom = params.get('room');
