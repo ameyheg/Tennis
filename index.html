@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Grand Slam 3D Tennis — First-Person & Stadium Edition</title>
+  <title>Grand Slam 3D Tennis — Real-Life 1st-Person Biomechanics</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
@@ -492,7 +492,7 @@
     <div class="controls-bar">
       <button class="btn btn-cam" id="btnCameraMode" title="Switch Camera View">🎥 Cam: 1st Person FPV</button>
       <button class="btn" id="btnHandedness">Hand: Right</button>
-      <button class="btn" id="btnCalibrate">Center Tilt</button>
+      <button class="btn" id="btnCalibrate">Center Racket</button>
       <button class="btn" id="btnSensitivity">Sens: High</button>
       <button class="btn" id="btnOpenMenu">Pair / Mode</button>
     </div>
@@ -506,12 +506,12 @@
     <div class="sensor-row">
       <div style="display:flex; align-items:center; gap:8px;">
         <span class="dot" id="sensorDot"></span>
-        <span id="sensorStatusText">Control: Touch Swipe / Mouse</span>
+        <span id="sensorStatusText">Control: 1:1 Mouse / Touch IK (Move to Waggle, Swipe to Swing)</span>
       </div>
       <div style="display:flex; align-items:center; gap:8px;">
         <span class="stance-badge" id="hudStanceBadge">STANCE: FOREHAND</span>
         <span id="liveTelemetryText" style="color:var(--accent); font-family:monospace; font-size:0.75rem;">
-          Tilt: 0° | Force: 0.0
+          Roll: 0° | Pitch: 0° | Force: 0.0
         </span>
       </div>
     </div>
@@ -526,18 +526,18 @@
   <!-- Main Menu Modal -->
   <div id="menuModal" class="overlay">
     <div class="card">
-      <h1>🎾 Grand Slam 3D — First-Person Edition</h1>
-      <p class="sub">Experience eye-level <strong>First-Person Racket View</strong> or <strong>Pro Action Cam</strong> inside a 360° Grand Slam Stadium. Scan the QR code to use your phone as a physical racket!</p>
+      <h1>🎾 Grand Slam 3D — Real-Life 1st-Person IK</h1>
+      <p class="sub">Experience true <strong>Shoulder-to-Wrist Inverse Kinematics</strong>, racket-drop lag, low-to-high topspin follow-through, and 60Hz 1:1 motion tracking.</p>
 
       <div class="mode-grid">
         <div class="mode-option" id="optHostPC">
           <h3>🖥️ + 📱 Dual Screen (Scan QR Code to Pair Phone)</h3>
-          <p>Displays a scannable QR code on this screen. Scan it with your phone camera to launch & pair your wireless racket automatically!</p>
+          <p>Displays a scannable QR code on this screen. Scan it with your phone camera to stream live 60Hz 3D wrist & arm movements to the 1st-person racket!</p>
         </div>
 
         <div class="mode-option" id="optSinglePhone">
           <h3>📱 Play on This Phone (1st-Person Motion Mode)</h3>
-          <p><strong>Tilt right/left</strong> to roll your racket between Forehand & Backhand and <strong>flick your wrist</strong> when the ball approaches.</p>
+          <p><strong>Tilt & rotate your wrist</strong> to move the 3D racket 1:1 in front of you, and <strong>swing through the ball</strong> with real follow-through.</p>
         </div>
 
         <div class="mode-option" id="optPhoneController">
@@ -546,8 +546,8 @@
         </div>
 
         <div class="mode-option" id="optTouchMouse">
-          <h3>👆 Touch Swipe / Mouse Mode (Instant Play)</h3>
-          <p>Move your mouse or drag to aim your 3D racket, and click or swipe across the ball to hit Forehands and Backhands.</p>
+          <h3>👆 1:1 Mouse / Touch IK Mode (Instant Play)</h3>
+          <p>Move your mouse (or drag) anywhere on screen to waggle, coil, and angle your 3D racket in real time. Flick or click to execute a full biomechanical swing!</p>
         </div>
       </div>
 
@@ -596,7 +596,7 @@
   <div id="racketControllerUI" class="hidden">
     <div style="background:rgba(255,255,255,0.06); padding:12px; border-radius:12px; display:flex; justify-content:space-between; align-items:center;">
       <div style="text-align:left;">
-        <div style="font-weight:700; color:var(--accent);" id="controllerHeaderTitle">🎾 WIRELESS RACKET</div>
+        <div style="font-weight:700; color:var(--accent);" id="controllerHeaderTitle">🎾 60Hz 3D WIRELESS RACKET</div>
         <div style="font-size:0.74rem; color:var(--muted);" id="controllerConnSub">Connected to 3D Stadium</div>
       </div>
       <button class="btn" id="btnControllerHand">Hand: Right</button>
@@ -607,16 +607,16 @@
         <div style="font-size:3rem; margin-bottom:10px;">📲</div>
         <h2 style="color:var(--accent); margin-bottom:6px;">Tap to Activate Motion Sensors</h2>
         <p style="font-size:0.85rem; color:#cbd5e1; max-width:260px; margin-bottom:16px;">
-          Your phone is paired! Tap anywhere here to grant motion sensor & haptic access.
+          Your phone is paired! Tap anywhere here to grant 60Hz 3D gyroscope & accelerometer access.
         </p>
         <button class="btn btn-primary" style="padding:12px 24px; font-size:0.95rem;">Activate Racket Sensors</button>
       </div>
 
       <div id="controllerStancePill" class="controller-stance-pill" style="background:rgba(0,240,255,0.2); color:#00f0ff; border:2px solid #00f0ff;">
-        FOREHAND READY
+        FOREHAND GRIP
       </div>
-      <p style="font-size:0.84rem; color:#cbd5e1; max-width:270px; margin-bottom:12px;">
-        Rotate palm inward for <strong>Forehand</strong> or knuckles forward for <strong>Backhand</strong>, then swing!
+      <p style="font-size:0.84rem; color:#cbd5e1; max-width:280px; margin-bottom:12px;">
+        Waggle or tilt your wrist to move the 1st-person racket in real time. Swing low-to-high through the ball!
       </p>
 
       <div style="width:85%; margin:10px 0;">
@@ -625,7 +625,7 @@
         </div>
       </div>
       <div id="controllerDebugText" style="font-family:monospace; font-size:0.82rem; color:var(--accent);">
-        Tilt: 0° | Force: 0.0
+        Roll: 0° | Pitch: 0° | Force: 0.0
       </div>
 
       <div style="display:flex; gap:10px; margin-top:20px; width:100%; justify-content:center;">
@@ -639,7 +639,7 @@
     </div>
 
     <div style="display:flex; gap:10px;">
-      <button class="btn" id="btnCenterRacket" style="flex:1;">Center Neutral Tilt</button>
+      <button class="btn" id="btnCenterRacket" style="flex:1;">Calibrate Neutral Grip</button>
       <button class="btn" id="btnExitController" style="flex:1;">Exit</button>
     </div>
   </div>
@@ -656,6 +656,33 @@
           if (AudioCtx) this.ctx = new AudioCtx();
         }
         if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+      }
+      playSwoosh(intensity = 1.0) {
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const dur = 0.16;
+        const bufSize = Math.floor(this.ctx.sampleRate * dur);
+        const buf = this.ctx.createBuffer(1, bufSize, this.ctx.sampleRate);
+        const data = buf.getChannelData(0);
+        for (let i = 0; i < bufSize; i++) {
+          data[i] = (Math.random() * 2 - 1) * Math.sin((i / bufSize) * Math.PI);
+        }
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buf;
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(320, now);
+        filter.frequency.exponentialRampToValueAtTime(980 * Math.min(1.5, intensity), now + dur);
+
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.24 * Math.min(1.4, intensity), now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.ctx.destination);
+        noise.start(now);
       }
       playHit(power = 1, quality = 'NORMAL') {
         this.init();
@@ -766,7 +793,7 @@
     const sfx = new SoundEngine();
 
     /******************************************************************
-     * 2. SMART FOREHAND / BACKHAND SENSOR ENGINE + ANTI-BACKSWING
+     * 2. 6-DOF / 3-AXIS IMU & BIOMECHANICAL SENSOR ENGINE
      ******************************************************************/
     const SENSITIVITY_PRESETS = [
       { label: 'High', threshold: 7.5 },
@@ -775,22 +802,32 @@
     ];
     let sensitivityIdx = 0;
 
-    // Camera Modes: 0 = First-Person Racket View (FPV), 1 = Pro Action Low Cam, 2 = Stadium Broadcast Cam
     const CAMERA_MODES = [
       { name: '1st Person FPV', id: 'FPV' },
       { name: 'Pro Action Cam', id: 'ACTION' },
       { name: 'TV Broadcast', id: 'BROADCAST' }
     ];
-    let cameraModeIdx = 0; // Default to First-Person Racket View as requested!
+    let cameraModeIdx = 0;
 
     const motionState = {
       active: false,
       eventsReceived: 0,
       handedness: 'RIGHT',
       currentStance: 'FOREHAND',
-      tiltGamma: 0,
-      tiltOffset: 0,
+      // 3-Axis Orientation (Roll = gamma, Pitch = beta, Yaw = alpha)
+      tiltGamma: 12,      // Wrist Roll (-55 to +55 deg)
+      tiltBeta: 25,       // Racket Pitch / Elevation (-45 to +70 deg)
+      tiltAlpha: 0,       // Horizontal Arm Sweep Yaw (-45 to +45 deg)
       rawGamma: 0,
+      rawBeta: 30,
+      rawAlpha: 0,
+      gammaOffset: 0,
+      betaOffset: 30,
+      alphaOffset: 0,
+      // Instantaneous Linear & Rotational Velocity for Live 1:1 Racket Waggle
+      accelX: 0,
+      accelY: 0,
+      accelZ: 0,
       accelMag: 0,
       prevGx: null,
       prevGy: null,
@@ -821,11 +858,11 @@
 
     function updateStanceFromWrist(gammaDeg) {
       if (motionState.handedness === 'RIGHT') {
-        if (gammaDeg > 3) motionState.currentStance = 'FOREHAND';
-        else if (gammaDeg < -3) motionState.currentStance = 'BACKHAND';
+        if (gammaDeg > 2) motionState.currentStance = 'FOREHAND';
+        else if (gammaDeg < -2) motionState.currentStance = 'BACKHAND';
       } else {
-        if (gammaDeg < -3) motionState.currentStance = 'FOREHAND';
-        else if (gammaDeg > 3) motionState.currentStance = 'BACKHAND';
+        if (gammaDeg < -2) motionState.currentStance = 'FOREHAND';
+        else if (gammaDeg > 2) motionState.currentStance = 'BACKHAND';
       }
       player.racketSide = getSideForStroke(motionState.currentStance);
     }
@@ -894,16 +931,36 @@
       return true;
     }
 
+    function wrapAngle180(deg) {
+      let a = ((deg + 180) % 360);
+      if (a < 0) a += 360;
+      return a - 180;
+    }
+
     function startMotionListeners() {
       if (motionState.active) return;
       motionState.active = true;
 
       window.addEventListener('deviceorientation', (e) => {
         if (e.gamma !== null && e.gamma !== undefined) {
+          if (motionState.eventsReceived === 0 && e.alpha !== null) {
+            motionState.alphaOffset = e.alpha;
+            motionState.betaOffset = e.beta || 30;
+            motionState.gammaOffset = e.gamma || 0;
+          }
           motionState.eventsReceived++;
           motionState.rawGamma = e.gamma;
-          const calibrated = e.gamma - motionState.tiltOffset;
-          motionState.tiltGamma = Math.max(-45, Math.min(45, calibrated));
+          motionState.rawBeta = e.beta || 0;
+          motionState.rawAlpha = e.alpha || 0;
+
+          const calGamma = e.gamma - motionState.gammaOffset;
+          const calBeta = (e.beta || 0) - motionState.betaOffset;
+          const calAlpha = wrapAngle180((e.alpha || 0) - motionState.alphaOffset);
+
+          motionState.tiltGamma = Math.max(-60, Math.min(60, calGamma));
+          motionState.tiltBeta = Math.max(-50, Math.min(65, calBeta));
+          motionState.tiltAlpha = Math.max(-55, Math.min(55, calAlpha));
+
           updateStanceFromWrist(motionState.tiltGamma);
           updateTelemetryUI();
         }
@@ -916,24 +973,30 @@
 
         let linearMag = 0;
         let signedLateral = 0;
+        let ax = 0, ay = 0, az = 0;
 
         if (acc && acc.x !== null && acc.y !== null && acc.z !== null) {
           motionState.eventsReceived++;
-          linearMag = Math.sqrt(acc.x * acc.x + acc.y * acc.y + acc.z * acc.z);
-          signedLateral = -acc.x;
+          ax = acc.x; ay = acc.y; az = acc.z;
+          linearMag = Math.sqrt(ax * ax + ay * ay + az * az);
+          signedLateral = -ax;
         } else if (accG && accG.x !== null && accG.y !== null && accG.z !== null) {
           motionState.eventsReceived++;
           if (motionState.prevGx !== null) {
-            const dx = accG.x - motionState.prevGx;
-            const dy = accG.y - motionState.prevGy;
-            const dz = accG.z - motionState.prevGz;
-            linearMag = Math.sqrt(dx * dx + dy * dy + dz * dz) * 1.35;
-            signedLateral = -dx * 1.5;
+            ax = (accG.x - motionState.prevGx) * 1.35;
+            ay = (accG.y - motionState.prevGy) * 1.35;
+            az = (accG.z - motionState.prevGz) * 1.35;
+            linearMag = Math.sqrt(ax * ax + ay * ay + az * az);
+            signedLateral = -ax * 1.1;
           }
           motionState.prevGx = accG.x;
           motionState.prevGy = accG.y;
           motionState.prevGz = accG.z;
         }
+
+        motionState.accelX = ax;
+        motionState.accelY = ay;
+        motionState.accelZ = az;
 
         let rotBoost = 0;
         if (rot && (rot.alpha !== null || rot.beta !== null || rot.gamma !== null)) {
@@ -997,6 +1060,16 @@
       });
     }
 
+    function calibrateNeutralGrip() {
+      motionState.gammaOffset = motionState.rawGamma;
+      motionState.betaOffset = motionState.rawBeta;
+      motionState.alphaOffset = motionState.rawAlpha;
+      motionState.tiltGamma = 0;
+      motionState.tiltBeta = 0;
+      motionState.tiltAlpha = 0;
+      if (navigator.vibrate) navigator.vibrate(25);
+    }
+
     function updateTelemetryUI() {
       const pct = Math.min(100, (motionState.accelMag / 22) * 100);
       const hudBar = document.getElementById('hudSwingBar');
@@ -1005,7 +1078,7 @@
       const ctrlBar = document.getElementById('controllerSwingBar');
       if (ctrlBar) ctrlBar.style.width = `${pct}%`;
 
-      const txt = `Tilt: ${Math.round(motionState.tiltGamma)}° | Force: ${motionState.accelMag.toFixed(1)}`;
+      const txt = `Roll: ${Math.round(motionState.tiltGamma)}° | Pitch: ${Math.round(motionState.tiltBeta)}° | Force: ${motionState.accelMag.toFixed(1)}`;
       const hudTxt = document.getElementById('liveTelemetryText');
       if (hudTxt) hudTxt.textContent = txt;
 
@@ -1022,7 +1095,7 @@
       const ctrlPill = document.getElementById('controllerStancePill');
       const ctrlZone = document.getElementById('controllerGripZone');
       if (ctrlPill && ctrlZone) {
-        ctrlPill.textContent = `${motionState.currentStance} READY`;
+        ctrlPill.textContent = `${motionState.currentStance} GRIP`;
         if (isFH) {
           ctrlPill.style.background = 'rgba(0, 240, 255, 0.2)';
           ctrlPill.style.color = '#00f0ff';
@@ -1038,7 +1111,7 @@
     }
 
     /******************************************************************
-     * 3. QR CODE GENERATOR & WEBRTC (PEERJS) AUTO-PAIRING
+     * 3. QR CODE GENERATOR & 60Hz WEBRTC (PEERJS) AUTO-PAIRING
      ******************************************************************/
     let peer = null;
     let peerConn = null;
@@ -1099,14 +1172,20 @@
       peer.on('connection', (conn) => {
         peerConn = conn;
         document.getElementById('sensorDot').classList.add('live');
-        document.getElementById('sensorStatusText').textContent = `Wireless Racket Connected (${currentRoomCode})`;
+        document.getElementById('sensorStatusText').textContent = `60Hz Wireless Racket Connected (${currentRoomCode})`;
         document.getElementById('menuModal').classList.add('hidden');
         sfx.playCrowdApplause(true);
 
         conn.on('data', (data) => {
-          if (data.type === 'TILT') {
-            motionState.tiltGamma = data.tilt;
+          if (data.type === 'IMU') {
+            motionState.tiltGamma = data.gamma;
+            motionState.tiltBeta = data.beta || 0;
+            motionState.tiltAlpha = data.alpha || 0;
+            motionState.accelX = data.ax || 0;
+            motionState.accelY = data.ay || 0;
+            motionState.accelZ = data.az || 0;
             motionState.accelMag = data.force || 0;
+
             if (data.handedness) {
               motionState.handedness = data.handedness;
               document.getElementById('btnHandedness').textContent =
@@ -1157,34 +1236,40 @@
         const conn = peer.connect(`MOTION-TENNIS-${cleanCode}`);
         conn.on('open', () => {
           peerConn = conn;
-          document.getElementById('controllerConnSub').textContent = `Connected to Room ${cleanCode} ✅`;
+          document.getElementById('controllerConnSub').textContent = `Connected to Room ${cleanCode} (60Hz 3D Live) ✅`;
           if (navigator.vibrate) navigator.vibrate([45, 40, 70]);
 
+          // Stream full 6-DOF IMU state at ~60fps (16ms) for 1:1 real-life racket movement
           setInterval(() => {
             if (peerConn && peerConn.open) {
               peerConn.send({
-                type: 'TILT',
-                tilt: motionState.tiltGamma,
+                type: 'IMU',
+                gamma: motionState.tiltGamma,
+                beta: motionState.tiltBeta,
+                alpha: motionState.tiltAlpha,
+                ax: motionState.accelX,
+                ay: motionState.accelY,
+                az: motionState.accelZ,
                 force: motionState.accelMag,
                 stance: motionState.currentStance,
                 handedness: motionState.handedness
               });
             }
-          }, 40);
+          }, 16);
         });
       });
     }
 
     /******************************************************************
-     * 4. 10x UPGRADED 3D STADIUM, PRO RACKET & ANATOMICAL ATHLETES
+     * 4. 3D STADIUM, PRO CARBON RACKET & REAL-LIFE 1ST-PERSON IK RIG
      ******************************************************************/
-    const SCALE_X = 0.36; // 300 * 0.36 = 108 units wide
+    const SCALE_X = 0.36;
     const SCALE_Y = 0.62;
-    const SCALE_Z = 2.20; // 100 * 2.20 = 220 units long (Net at 3D Z = 0)
+    const SCALE_Z = 2.20;
 
     function to3DX(wx) { return wx * SCALE_X; }
     function to3DY(wy) { return wy * SCALE_Y; }
-    function to3DZ(wz) { return (50 - wz) * SCALE_Z; } // Player at Z = +101.2, AI at Z = -101.2
+    function to3DZ(wz) { return (50 - wz) * SCALE_Z; }
 
     const webglContainer = document.getElementById('webglContainer');
     const hudCanvas = document.getElementById('hudCanvas');
@@ -1194,7 +1279,7 @@
     scene.background = new THREE.Color(0x060b18);
     scene.fog = new THREE.FogExp2(0x060b18, 0.00095);
 
-    const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.5, 1400);
+    const camera = new THREE.PerspectiveCamera(54, window.innerWidth / window.innerHeight, 0.4, 1400);
     const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -1212,7 +1297,6 @@
       const g = c.getContext('2d');
       g.fillStyle = '#18181b';
       g.fillRect(0, 0, c.width, c.height);
-      // Spiral overgrip wrap lines
       g.strokeStyle = '#09090b';
       g.lineWidth = 5;
       for (let y = -40; y < c.height + 40; y += 22) {
@@ -1221,7 +1305,6 @@
         g.lineTo(c.width, y + 28);
         g.stroke();
       }
-      // Perforation dots
       g.fillStyle = 'rgba(255,255,255,0.06)';
       for (let i = 0; i < 150; i++) {
         g.fillRect(Math.random() * c.width, Math.random() * c.height, 2, 2);
@@ -1237,7 +1320,7 @@
     function createProCarbonRacket(primaryColorHex = 0x00f0ff, accentColorHex = 0xd4ff00) {
       const racket = new THREE.Group();
 
-      // 1. Flared Octagonal Butt Cap & Handle
+      // 1. Flared Octagonal Butt Cap & Handle (Origin y=0 is at the grip)
       const buttCap = new THREE.Mesh(
         new THREE.CylinderGeometry(0.46, 0.54, 0.6, 8),
         new THREE.MeshStandardMaterial({ color: 0x090d16, roughness: 0.4 })
@@ -1253,7 +1336,6 @@
       handle.castShadow = true;
       racket.add(handle);
 
-      // Finishing Tape Collar at top of grip
       const gripCollar = new THREE.Mesh(
         new THREE.CylinderGeometry(0.44, 0.43, 0.4, 12),
         new THREE.MeshStandardMaterial({ color: accentColorHex, roughness: 0.3 })
@@ -1261,7 +1343,6 @@
       gripCollar.position.y = 5.75;
       racket.add(gripCollar);
 
-      // 2. Glossy Carbon-Fiber Material & Two-Tone Accents
       const carbonMat = new THREE.MeshStandardMaterial({
         color: 0x111827,
         metalness: 0.75,
@@ -1275,7 +1356,7 @@
         emissiveIntensity: 0.22
       });
 
-      // 3. Sculpted Dual-Shaft Aerodynamic Y-Throat
+      // 2. Sculpted Dual-Shaft Aerodynamic Y-Throat
       const shaftGeo = new THREE.CylinderGeometry(0.24, 0.30, 4.3, 12);
       const leftShaft = new THREE.Mesh(shaftGeo, carbonMat);
       leftShaft.position.set(-1.15, 7.6, 0);
@@ -1286,7 +1367,6 @@
       rightShaft.position.x = 1.15;
       rightShaft.rotation.z = -0.36;
 
-      // Throat Bridge Bar (bottom of stringbed)
       const throatBridge = new THREE.Mesh(
         new THREE.CylinderGeometry(0.22, 0.22, 2.9, 10),
         carbonMat
@@ -1295,7 +1375,7 @@
       throatBridge.position.set(0, 9.1, 0);
       racket.add(leftShaft, rightShaft, throatBridge);
 
-      // 4. Elliptical Pro Racket Head Frame + Top Bumper Guard
+      // 3. Elliptical Pro Racket Head Frame + Top Bumper Guard
       const headCenterY = 14.3;
       const rx = 3.65;
       const ry = 5.15;
@@ -1304,16 +1384,14 @@
       hoopGroup.position.y = headCenterY;
       hoopGroup.scale.set(rx / 4.2, ry / 4.2, 1.0);
 
-      // Main Frame Hoop
       const mainHoop = new THREE.Mesh(
         new THREE.TorusGeometry(4.2, 0.31, 14, 48),
         neonFrameMat
       );
-      mainHoop.scale.z = 1.35; // Aerodynamic box beam depth
+      mainHoop.scale.z = 1.35;
       mainHoop.castShadow = true;
       hoopGroup.add(mainHoop);
 
-      // Black Grommet Bumper Guard along top arc
       const bumperArc = new THREE.Mesh(
         new THREE.TorusGeometry(4.26, 0.26, 10, 32, Math.PI * 0.85),
         new THREE.MeshStandardMaterial({ color: 0x09090b, roughness: 0.6 })
@@ -1322,7 +1400,7 @@
       hoopGroup.add(bumperArc);
       racket.add(hoopGroup);
 
-      // 5. Real 3D Individual Main & Cross Strings (No triangle-fan circle!)
+      // 4. Individual 3D Main & Cross Strings + Red Tour Stencil
       const stringGroup = new THREE.Group();
       stringGroup.position.y = headCenterY;
       const stringMat = new THREE.MeshBasicMaterial({
@@ -1332,7 +1410,6 @@
       });
       const stencilMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
 
-      // 12 Vertical Main Strings
       for (let i = -5.5; i <= 5.5; i += 1) {
         const x = i * 0.56;
         if (Math.abs(x) < rx - 0.25) {
@@ -1344,7 +1421,6 @@
         }
       }
 
-      // 14 Horizontal Cross Strings
       for (let j = -6.5; j <= 6.5; j += 1) {
         const y = j * 0.68;
         if (Math.abs(y) < ry - 0.25) {
@@ -1359,10 +1435,17 @@
       }
       racket.add(stringGroup);
 
-      return { group: racket, frameMat: neonFrameMat };
+      // Tip & Sweetspot reference nodes for 3D Swoosh Ribbon Trail
+      const tipMarker = new THREE.Object3D();
+      tipMarker.position.set(0, headCenterY + ry, 0);
+      const throatMarker = new THREE.Object3D();
+      throatMarker.position.set(0, 9.2, 0);
+      racket.add(tipMarker, throatMarker);
+
+      return { group: racket, frameMat: neonFrameMat, tipMarker, throatMarker };
     }
 
-    // --- ANATOMICAL 3D TENNIS ATHLETE (Sculpted Torso, 2 Arms, Knees, Visor & Sneakers) ---
+    // --- ANATOMICAL 3D TENNIS ATHLETE (For Far AI & 3rd-Person Action Cam) ---
     function createProAthlete(kitPrimaryHex, kitShortsHex, skinHex, isNearPlayer = false) {
       const root = new THREE.Group();
 
@@ -1373,38 +1456,31 @@
       const darkShoeMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.4 });
       const neonSoleMat = new THREE.MeshStandardMaterial({ color: 0xd4ff00, roughness: 0.3 });
 
-      // 1. Pelvis & Upper Body Pivot (Coils during Forehand/Backhand unit-turn)
       const torsoPivot = new THREE.Group();
       torsoPivot.position.y = 9.4;
       root.add(torsoPivot);
 
-      // Sculpted V-Tapered Athletic Torso using LatheGeometry
       const torsoPoints = [
         new THREE.Vector2(0.1, 0.0),
-        new THREE.Vector2(2.05, 0.2),  // Waist
-        new THREE.Vector2(2.15, 2.2),  // Midsection
-        new THREE.Vector2(2.75, 5.4),  // Athletic Chest / Lats
-        new THREE.Vector2(2.90, 6.8),  // Broad Shoulders
-        new THREE.Vector2(1.15, 7.5),  // Traps / Collar Base
+        new THREE.Vector2(2.05, 0.2),
+        new THREE.Vector2(2.15, 2.2),
+        new THREE.Vector2(2.75, 5.4),
+        new THREE.Vector2(2.90, 6.8),
+        new THREE.Vector2(1.15, 7.5),
         new THREE.Vector2(0.1, 7.55)
       ];
       const torsoGeo = new THREE.LatheGeometry(torsoPoints, 20);
       const torsoMesh = new THREE.Mesh(torsoGeo, jerseyMat);
-      torsoMesh.scale.set(1.05, 1.0, 0.66); // Flatten front-to-back for human chest profile
+      torsoMesh.scale.set(1.05, 1.0, 0.66);
       torsoMesh.castShadow = true;
       torsoPivot.add(torsoMesh);
 
-      // Polo Collar & Chest Stripe
-      const collar = new THREE.Mesh(
-        new THREE.TorusGeometry(1.05, 0.22, 8, 20),
-        whiteTrimMat
-      );
+      const collar = new THREE.Mesh(new THREE.TorusGeometry(1.05, 0.22, 8, 20), whiteTrimMat);
       collar.rotation.x = Math.PI / 2;
       collar.scale.set(1.0, 0.78, 1.0);
       collar.position.y = 7.45;
       torsoPivot.add(collar);
 
-      // 2. Neck, Sculpted Head, Hair & Proper Curved Baseball Cap with Brim
       const headGroup = new THREE.Group();
       headGroup.position.y = 7.6;
       torsoPivot.add(headGroup);
@@ -1419,15 +1495,6 @@
       headSkull.castShadow = true;
       headGroup.add(headSkull);
 
-      // Ears & Nose Bridge
-      const earGeo = new THREE.SphereGeometry(0.32, 8, 8);
-      const earL = new THREE.Mesh(earGeo, skinMat);
-      earL.position.set(-1.62, 2.3, 0);
-      const earR = earL.clone();
-      earR.position.x = 1.62;
-      headGroup.add(earL, earR);
-
-      // Athletic Sunglasses / Visor Eyes
       const shades = new THREE.Mesh(
         new THREE.BoxGeometry(2.3, 0.52, 0.6),
         new THREE.MeshStandardMaterial({ color: 0x090d16, metalness: 0.85, roughness: 0.15 })
@@ -1435,7 +1502,6 @@
       shades.position.set(0, 2.45, -1.48);
       headGroup.add(shades);
 
-      // Fitted Tennis Cap Crown + Forward Curved Visor Bill
       const capCrown = new THREE.Mesh(
         new THREE.SphereGeometry(1.86, 20, 14, 0, Math.PI * 2, 0, Math.PI * 0.52),
         whiteTrimMat
@@ -1453,54 +1519,33 @@
       capVisor.rotation.x = 0.18;
       headGroup.add(capVisor);
 
-      // 3. BOTH Articulated Arms (Dominant Racket Arm + Non-Dominant Balance/Toss Arm)
       function createArmLimb(isRacketArm) {
         const shoulderPivot = new THREE.Group();
         shoulderPivot.position.set(isRacketArm ? 3.1 : -3.1, 6.45, 0);
 
-        // Jersey Sleeve Shoulder Cap
-        const sleeve = new THREE.Mesh(
-          new THREE.CylinderGeometry(1.05, 0.92, 2.1, 14),
-          jerseyMat
-        );
+        const sleeve = new THREE.Mesh(new THREE.CylinderGeometry(1.05, 0.92, 2.1, 14), jerseyMat);
         sleeve.position.y = -0.7;
         sleeve.castShadow = true;
         shoulderPivot.add(sleeve);
 
-        // Upper Arm Bicep
-        const bicep = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.78, 0.68, 2.8, 12),
-          skinMat
-        );
+        const bicep = new THREE.Mesh(new THREE.CylinderGeometry(0.78, 0.68, 2.8, 12), skinMat);
         bicep.position.y = -2.2;
         bicep.castShadow = true;
         shoulderPivot.add(bicep);
 
-        // Elbow Joint & Forearm Group
         const elbowPivot = new THREE.Group();
         elbowPivot.position.y = -3.6;
         shoulderPivot.add(elbowPivot);
 
-        const elbowJoint = new THREE.Mesh(new THREE.SphereGeometry(0.68, 10, 10), skinMat);
-        elbowPivot.add(elbowJoint);
-
-        const forearm = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.66, 0.52, 3.1, 12),
-          skinMat
-        );
+        const forearm = new THREE.Mesh(new THREE.CylinderGeometry(0.66, 0.52, 3.1, 12), skinMat);
         forearm.position.y = -1.55;
         forearm.castShadow = true;
         elbowPivot.add(forearm);
 
-        // White Terrycloth Wristband
-        const wristband = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.58, 0.56, 0.75, 12),
-          whiteTrimMat
-        );
+        const wristband = new THREE.Mesh(new THREE.CylinderGeometry(0.58, 0.56, 0.75, 12), whiteTrimMat);
         wristband.position.y = -2.75;
         elbowPivot.add(wristband);
 
-        // Hand
         const hand = new THREE.Mesh(new THREE.SphereGeometry(0.62, 12, 12), skinMat);
         hand.position.y = -3.35;
         elbowPivot.add(hand);
@@ -1512,26 +1557,17 @@
       const leftArm = createArmLimb(false);
       torsoPivot.add(rightArm.shoulderPivot, leftArm.shoulderPivot);
 
-      // Attach Pro Carbon Racket to Dominant Arm
-      const racketObj = createProCarbonRacket(
-        isNearPlayer ? 0x00f0ff : 0xf43f5e,
-        0xd4ff00
-      );
+      const racketObj = createProCarbonRacket(isNearPlayer ? 0x00f0ff : 0xf43f5e, 0xd4ff00);
       racketObj.group.scale.setScalar(0.88);
       racketObj.group.position.set(0, -3.5, -0.3);
       racketObj.group.rotation.x = -Math.PI / 2.2;
       rightArm.elbowPivot.add(racketObj.group);
 
-      // Pose Non-Dominant Left Arm in athletic balance stance
       leftArm.shoulderPivot.rotation.z = -0.35;
       leftArm.shoulderPivot.rotation.x = -0.45;
       leftArm.elbowPivot.rotation.x = -0.85;
 
-      // 4. Sculpted Shorts Pelvis & Articulated Legs with Knees, Socks & Pro Sneakers
-      const hipPelvis = new THREE.Mesh(
-        new THREE.CylinderGeometry(2.15, 2.25, 2.0, 16),
-        shortsMat
-      );
+      const hipPelvis = new THREE.Mesh(new THREE.CylinderGeometry(2.15, 2.25, 2.0, 16), shortsMat);
       hipPelvis.scale.set(1.04, 1.0, 0.72);
       hipPelvis.position.y = 8.9;
       hipPelvis.castShadow = true;
@@ -1541,49 +1577,27 @@
         const hipJoint = new THREE.Group();
         hipJoint.position.set(sideSign * 1.35, 8.4, 0);
 
-        // Flared Shorts Leg Opening
-        const shortLeg = new THREE.Mesh(
-          new THREE.CylinderGeometry(1.22, 1.32, 2.5, 14),
-          shortsMat
-        );
+        const shortLeg = new THREE.Mesh(new THREE.CylinderGeometry(1.22, 1.32, 2.5, 14), shortsMat);
         shortLeg.position.y = -1.0;
         shortLeg.castShadow = true;
         hipJoint.add(shortLeg);
 
-        // Muscular Quad / Thigh
-        const thigh = new THREE.Mesh(
-          new THREE.CylinderGeometry(1.05, 0.82, 3.6, 12),
-          skinMat
-        );
+        const thigh = new THREE.Mesh(new THREE.CylinderGeometry(1.05, 0.82, 3.6, 12), skinMat);
         thigh.position.y = -2.6;
         thigh.castShadow = true;
         hipJoint.add(thigh);
 
-        // Knee Joint & Calf
-        const kneeJoint = new THREE.Mesh(new THREE.SphereGeometry(0.82, 10, 10), skinMat);
-        kneeJoint.position.y = -4.3;
-        hipJoint.add(kneeJoint);
-
-        const calf = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.80, 0.56, 3.6, 12),
-          skinMat
-        );
+        const calf = new THREE.Mesh(new THREE.CylinderGeometry(0.80, 0.56, 3.6, 12), skinMat);
         calf.position.y = -6.0;
         calf.castShadow = true;
         hipJoint.add(calf);
 
-        // Ribbed Athletic Crew Sock
-        const sock = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.60, 0.58, 1.5, 12),
-          whiteTrimMat
-        );
+        const sock = new THREE.Mesh(new THREE.CylinderGeometry(0.60, 0.58, 1.5, 12), whiteTrimMat);
         sock.position.y = -7.2;
         hipJoint.add(sock);
 
-        // Multi-Part Pro Tennis Sneaker
         const shoeGroup = new THREE.Group();
         shoeGroup.position.set(0, -8.0, -0.35);
-
         const outsole = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.35, 3.1), neonSoleMat);
         outsole.position.y = -0.18;
         const shoeUpper = new THREE.Mesh(new THREE.BoxGeometry(1.42, 0.85, 2.85), whiteTrimMat);
@@ -1591,7 +1605,6 @@
         const heelCounter = new THREE.Mesh(new THREE.BoxGeometry(1.46, 0.75, 1.0), darkShoeMat);
         heelCounter.position.set(0, 0.35, 0.9);
         shoeGroup.add(outsole, shoeUpper, heelCounter);
-        shoeGroup.traverse(o => { if (o.isMesh) o.castShadow = true; });
         hipJoint.add(shoeGroup);
 
         return hipJoint;
@@ -1601,83 +1614,175 @@
       const legR = createLegLimb(1);
       root.add(legL, legR);
 
-      return {
-        root,
-        torsoPivot,
-        headGroup,
-        rightArm,
-        leftArm,
-        racketObj,
-        legL,
-        legR,
-        jerseyMat
-      };
+      return { root, torsoPivot, headGroup, rightArm, leftArm, racketObj, legL, legR, jerseyMat };
     }
 
-    // --- FIRST-PERSON RACKET VIEW (FPV) RIG (Foreground Arm + Wristband + Pro Racket) ---
-    function createFirstPersonRacketRig() {
+    // --- REAL-LIFE FIRST-PERSON BIOMECHANICAL IK RIG (Shoulder -> Elbow -> Wrist + Left Toss Arm + Swoosh Ribbon) ---
+    function createFirstPersonBiomechanicalRig() {
       const fpvGroup = new THREE.Group();
 
-      const skinMat = new THREE.MeshStandardMaterial({ color: 0xe0ac69, roughness: 0.48 });
+      const skinMat = new THREE.MeshStandardMaterial({ color: 0xe0ac69, roughness: 0.46 });
+      const sleeveMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.42 });
       const wristbandMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.35 });
       const stripeMat = new THREE.MeshStandardMaterial({ color: 0x00f0ff, roughness: 0.3 });
 
-      // Pivot at player's wrist/elbow so tilting phone rolls the racket naturally
-      const swingPivot = new THREE.Group();
-      fpvGroup.add(swingPivot);
-
-      // Sculpted Forearm extending from bottom-right of viewport
-      const forearm = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.68, 0.85, 6.5, 16),
-        skinMat
-      );
-      forearm.position.set(0, -3.2, 1.4);
-      forearm.rotation.x = 0.38;
-      swingPivot.add(forearm);
-
-      // Sweatband with Neon Accent Stripe
-      const sweatband = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.72, 0.74, 1.2, 16),
-        wristbandMat
-      );
-      sweatband.position.set(0, -0.6, 0.45);
-      sweatband.rotation.x = 0.38;
-      swingPivot.add(sweatband);
-
-      const bandStripe = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.735, 0.735, 0.25, 16),
-        stripeMat
-      );
-      bandStripe.position.set(0, -0.6, 0.45);
-      bandStripe.rotation.x = 0.38;
-      swingPivot.add(bandStripe);
-
-      // Articulated Grip Hand & Knuckles wrapped around handle
-      const palm = new THREE.Mesh(new THREE.SphereGeometry(0.76, 16, 16), skinMat);
-      palm.scale.set(0.9, 1.15, 0.95);
-      palm.position.set(0, 0.65, 0);
-      swingPivot.add(palm);
-
-      for (let f = 0; f < 4; f++) {
-        const finger = new THREE.Mesh(
-          new THREE.TorusGeometry(0.46, 0.14, 8, 14, Math.PI * 1.3),
-          skinMat
-        );
-        finger.rotation.x = Math.PI / 2;
-        finger.position.set(0, 0.35 + f * 0.28, 0);
-        swingPivot.add(finger);
+      // Helper to orient a cylindrical limb segment between two 3D points A and B
+      function createSegmentMesh(radTop, radBot, material) {
+        const geo = new THREE.CylinderGeometry(radTop, radBot, 1, 16);
+        const mesh = new THREE.Mesh(geo, material);
+        mesh.castShadow = true;
+        fpvGroup.add(mesh);
+        return mesh;
       }
 
-      // High-Detail Pro Carbon Racket in Player's Hand
+      // 1. Dominant Racket Arm Segments (Driven by 2-Bone Analytical IK)
+      const upperArmSleeve = createSegmentMesh(1.05, 0.92, sleeveMat);
+      const upperArmBicep = createSegmentMesh(0.86, 0.72, skinMat);
+      const elbowSphere = new THREE.Mesh(new THREE.SphereGeometry(0.74, 14, 14), skinMat);
+      fpvGroup.add(elbowSphere);
+      const forearmMesh = createSegmentMesh(0.72, 0.54, skinMat);
+      const wristbandMesh = createSegmentMesh(0.60, 0.58, wristbandMat);
+      const wristbandStripe = createSegmentMesh(0.615, 0.615, stripeMat);
+
+      // 2. Articulated Wrist & Hand Holding Pro Carbon Racket
+      const wristPivot = new THREE.Group();
+      fpvGroup.add(wristPivot);
+
+      const palm = new THREE.Mesh(new THREE.SphereGeometry(0.66, 16, 16), skinMat);
+      palm.scale.set(0.88, 1.15, 0.95);
+      palm.position.set(0, 1.8, 0.15);
+      wristPivot.add(palm);
+
+      // Sculpted curled fingers + index trigger finger on grip
+      for (let f = 0; f < 4; f++) {
+        const knuckle = new THREE.Mesh(
+          new THREE.TorusGeometry(0.45, 0.135, 8, 14, Math.PI * 1.35),
+          skinMat
+        );
+        knuckle.rotation.x = Math.PI / 2;
+        knuckle.position.set(0, 1.35 + f * 0.30, 0);
+        wristPivot.add(knuckle);
+      }
+      const thumb = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.17, 0.95, 10), skinMat);
+      thumb.position.set(-0.38, 2.1, 0.32);
+      thumb.rotation.set(0.4, 0, -0.6);
+      wristPivot.add(thumb);
+
       const proRacket = createProCarbonRacket(0x00f0ff, 0xd4ff00);
-      proRacket.group.position.set(0, -1.2, 0);
-      swingPivot.add(proRacket.group);
+      proRacket.group.position.set(0, 0, 0);
+      wristPivot.add(proRacket.group);
+
+      // 3. Non-Dominant Off-Hand (Cradles racket throat in Ready Stance & Tosses Ball on Serve!)
+      const offArmForearm = createSegmentMesh(0.66, 0.50, skinMat);
+      const offArmWristband = createSegmentMesh(0.56, 0.54, wristbandMat);
+      const offHandSphere = new THREE.Mesh(new THREE.SphereGeometry(0.60, 14, 14), skinMat);
+      fpvGroup.add(offHandSphere);
+
+      // 4. 3D Volumetric Racket Swoosh Trail Ribbon
+      const SWOOSH_SEGMENTS = 18;
+      const swooshGeo = new THREE.BufferGeometry();
+      const swooshPositions = new Float32Array(SWOOSH_SEGMENTS * 2 * 3);
+      swooshGeo.setAttribute('position', new THREE.BufferAttribute(swooshPositions, 3));
+      const swooshIndices = [];
+      for (let i = 0; i < SWOOSH_SEGMENTS - 1; i++) {
+        const a = i * 2;
+        const b = a + 1;
+        const c = a + 2;
+        const d = a + 3;
+        swooshIndices.push(a, b, c, b, d, c);
+      }
+      swooshGeo.setIndex(swooshIndices);
+      const swooshMat = new THREE.MeshBasicMaterial({
+        color: 0x00f0ff,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.0,
+        depthWrite: false
+      });
+      const swooshMesh = new THREE.Mesh(swooshGeo, swooshMat);
+      swooshMesh.frustumCulled = false;
+      scene.add(swooshMesh);
 
       scene.add(fpvGroup);
-      return { fpvGroup, swingPivot, proRacket };
+      return {
+        fpvGroup,
+        upperArmSleeve,
+        upperArmBicep,
+        elbowSphere,
+        forearmMesh,
+        wristbandMesh,
+        wristbandStripe,
+        wristPivot,
+        proRacket,
+        offArmForearm,
+        offArmWristband,
+        offHandSphere,
+        swooshMesh,
+        swooshHistory: []
+      };
     }
 
-    // --- Procedural High-Resolution Acrylic Court Texture ---
+    // Helper: Position & orient a cylinder mesh from 3D point pA to pB
+    const _upAxis = new THREE.Vector3(0, 1, 0);
+    const _segDir = new THREE.Vector3();
+    function alignLimbSegment(mesh, pA, pB, startFrac = 0.0, endFrac = 1.0) {
+      const s = new THREE.Vector3().lerpVectors(pA, pB, startFrac);
+      const e = new THREE.Vector3().lerpVectors(pA, pB, endFrac);
+      const dist = s.distanceTo(e);
+      if (dist < 0.001) return;
+      mesh.position.lerpVectors(s, e, 0.5);
+      mesh.scale.set(1, dist, 1);
+      _segDir.subVectors(e, s).normalize();
+      mesh.quaternion.setFromUnitVectors(_upAxis, _segDir);
+    }
+
+    // Analytical 2-Bone Inverse Kinematics Solver (Shoulder -> Elbow -> Wrist)
+    function solveArmIK(shoulderPos, wristPos, lenUpper, lenForearm, poleHintDir) {
+      const sw = new THREE.Vector3().subVectors(wristPos, shoulderPos);
+      const d = Math.min(sw.length(), (lenUpper + lenForearm) * 0.995);
+      const swNorm = sw.clone().normalize();
+
+      // Law of cosines for shoulder angle
+      const cosAngle = THREE.MathUtils.clamp(
+        (lenUpper * lenUpper + d * d - lenForearm * lenForearm) / (2 * lenUpper * d),
+        -1,
+        1
+      );
+      const angle = Math.acos(cosAngle);
+
+      // Orthogonal elbow bend plane toward anatomical pole vector (down and outward)
+      const ortho = new THREE.Vector3().crossVectors(swNorm, poleHintDir);
+      if (ortho.lengthSq() < 0.0001) ortho.set(0, 0, 1);
+      ortho.normalize();
+      const bendDir = new THREE.Vector3().crossVectors(ortho, swNorm).normalize();
+
+      const elbowPos = shoulderPos.clone()
+        .addScaledVector(swNorm, Math.cos(angle) * lenUpper)
+        .addScaledVector(bendDir, Math.sin(angle) * lenUpper);
+
+      return elbowPos;
+    }
+
+    // Cubic Hermite / Catmull-Rom interpolation for smooth 4-phase biomechanical swing trajectories
+    function sampleSwingWaypoints(waypoints, t) {
+      const n = waypoints.length - 1;
+      const scaled = THREE.MathUtils.clamp(t, 0, 1) * n;
+      const idx = Math.min(n - 1, Math.floor(scaled));
+      const frac = scaled - idx;
+      // Smoothstep easing per segment for natural acceleration through contact
+      const u = frac * frac * (3 - 2 * frac);
+      const w0 = waypoints[idx];
+      const w1 = waypoints[idx + 1];
+
+      return {
+        pos: new THREE.Vector3().lerpVectors(w0.pos, w1.pos, u),
+        rotX: THREE.MathUtils.lerp(w0.rotX, w1.rotX, u),
+        rotY: THREE.MathUtils.lerp(w0.rotY, w1.rotY, u),
+        rotZ: THREE.MathUtils.lerp(w0.rotZ, w1.rotZ, u)
+      };
+    }
+
+    // --- Procedural Court, Net & Ball Textures ---
     function createAcrylicCourtTexture() {
       const c = document.createElement('canvas');
       c.width = 1024;
@@ -1713,7 +1818,6 @@
         g.fillRect(x, y, 2, 2);
       }
 
-      // Crisp Painted White Court Lines
       g.strokeStyle = '#f8fafc';
       g.lineWidth = 10;
       g.strokeRect(padX, padY, innerW, innerH);
@@ -1817,7 +1921,7 @@
     }
 
     // --- Build Lighting ---
-    const hemiLight = new THREE.HemisphereLight(0xdbeafe, 0x0f172a, 0.72);
+    const hemiLight = new THREE.HemisphereLight(0xdbeafe, 0x0f172a, 0.75);
     scene.add(hemiLight);
 
     const mainSpot = new THREE.DirectionalLight(0xfffbeb, 1.22);
@@ -1898,7 +2002,6 @@
     function build360GrandSlamStadium() {
       const stadium = new THREE.Group();
 
-      // 1. Courtside Sponsor Perimeter Walls (Proper Aspect Ratio)
       const backBannerMat = new THREE.MeshBasicMaterial({
         map: createSponsorBoardTexture('ROLEX   •   GRAND SLAM ARENA   •   CHAMPIONSHIP COURT')
       });
@@ -1916,9 +2019,7 @@
       wallE.position.set(81, 4.5, 0);
       stadium.add(wallN, wallS, wallW, wallE);
 
-      // 2. Multi-Tier Concrete Stadium Seating Bowl (4 Sides Rising Upward)
       const tierConcreteMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.85 });
-      const aisleMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.7 });
       const vipGlassMat = new THREE.MeshBasicMaterial({ color: 0xfef08a });
 
       const NUM_TIERS = 12;
@@ -1929,13 +2030,11 @@
         const wZ = 320 + expand * 2;
         const stepDepth = 11.8;
 
-        // North & South Tribunes
         const stepN = new THREE.Mesh(new THREE.BoxGeometry(wX, 7.2, stepDepth), tierConcreteMat);
         stepN.position.set(0, y, -164 - expand);
         const stepS = stepN.clone();
         stepS.position.z = 164 + expand;
 
-        // West & East Tribunes
         const stepW = new THREE.Mesh(new THREE.BoxGeometry(stepDepth, 7.2, wZ), tierConcreteMat);
         stepW.position.set(-88 - expand, y, 0);
         const stepE = stepW.clone();
@@ -1943,7 +2042,6 @@
 
         stadium.add(stepN, stepS, stepW, stepE);
 
-        // Glowing VIP Luxury Box Suite Ribbon at Tier 6
         if (t === 5) {
           const vipN = new THREE.Mesh(new THREE.BoxGeometry(wX * 0.85, 3.2, 1.5), vipGlassMat);
           vipN.position.set(0, y + 2, -158 - expand);
@@ -1957,7 +2055,6 @@
         }
       }
 
-      // 3. Cantilevered Stadium Roof Canopy Ring & 36 Glowing Floodlight Pods
       const roofY = 102;
       const roofMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.6, roughness: 0.4 });
       const roofN = new THREE.Mesh(new THREE.BoxGeometry(460, 5, 55), roofMat);
@@ -1986,7 +2083,6 @@
         stadium.add(podW, podE);
       }
 
-      // 4. Populate 1,600+ 3D Spectators using InstancedMesh
       const specGeo = new THREE.CylinderGeometry(1.1, 1.35, 4.2, 7);
       const specMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
       const totalSpecs = 1650;
@@ -2005,11 +2101,10 @@
 
       let idx = 0;
       for (let t = 0; t < NUM_TIERS && idx < totalSpecs; t++) {
-        if (t === 5) continue; // Leave VIP glass tier clear
+        if (t === 5) continue;
         const y = 12.2 + t * 7.2;
         const expand = t * 11.5;
 
-        // North & South Stands
         const spanX = 155 + expand * 1.75;
         for (let x = -spanX / 2; x <= spanX / 2 && idx < totalSpecs; x += 6.2) {
           if (Math.random() < 0.14) continue;
@@ -2031,7 +2126,6 @@
           idx++;
         }
 
-        // West & East Stands
         const spanZ = 290 + expand * 1.75;
         for (let z = -spanZ / 2; z <= spanZ / 2 && idx < totalSpecs; z += 6.8) {
           if (Math.random() < 0.16) continue;
@@ -2058,7 +2152,6 @@
       if (crowdInstancedMesh.instanceColor) crowdInstancedMesh.instanceColor.needsUpdate = true;
       stadium.add(crowdInstancedMesh);
 
-      // 5. High Umpire Chair + Seated Umpire + Player Benches
       const chairGroup = new THREE.Group();
       const frameMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.6, roughness: 0.35 });
       const leg1 = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.7, 22, 10), frameMat);
@@ -2066,7 +2159,6 @@
       const leg2 = leg1.clone(); leg2.position.z = 2.8;
       const seat = new THREE.Mesh(new THREE.BoxGeometry(4.5, 1.2, 6.5), new THREE.MeshStandardMaterial({ color: 0x0284c7 }));
       seat.position.set(-66, 22, 0);
-      // Seated Umpire Figure
       const umpTorso = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.2, 4.5, 10), new THREE.MeshStandardMaterial({ color: 0x1e3a8a }));
       umpTorso.position.set(-66, 25, 0);
       const umpHead = new THREE.Mesh(new THREE.SphereGeometry(1.2, 12, 12), new THREE.MeshStandardMaterial({ color: 0xe0ac69 }));
@@ -2077,7 +2169,6 @@
       chairGroup.traverse(o => { if (o.isMesh) o.castShadow = true; });
       stadium.add(chairGroup);
 
-      // Courtside Player Benches
       const benchMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.5 });
       const bench1 = new THREE.Mesh(new THREE.BoxGeometry(4, 3.2, 18), benchMat);
       bench1.position.set(-68, 1.6, 24);
@@ -2090,14 +2181,14 @@
 
     build360GrandSlamStadium();
 
-    // --- Instantiate Athletes & First-Person Racket Rig ---
+    // --- Instantiate Athletes & First-Person Biomechanical Rig ---
     const player3D = createProAthlete(0x0284c7, 0x0f172a, 0xe0ac69, true);
     scene.add(player3D.root);
 
     const ai3D = createProAthlete(0xe11d48, 0xf8fafc, 0xd99b66, false);
     scene.add(ai3D.root);
 
-    const fpvRig = createFirstPersonRacketRig();
+    const fpvRig = createFirstPersonBiomechanicalRig();
 
     // --- 3D Fuzzy Felt Tennis Ball, Trail & Court Bounce Marks ---
     const ballMesh = new THREE.Mesh(
@@ -2162,7 +2253,7 @@
     }
 
     /******************************************************************
-     * 5. TENNIS PHYSICS & FOREHAND / BACKHAND BONUS ENGINE
+     * 5. TENNIS PHYSICS & REAL-LIFE 4-PHASE BIOMECHANICAL SWING STATE
      ******************************************************************/
     const COURT = { widthNear: 360, netZ: 50, netHeight: 16 };
     let cameraShake = 0;
@@ -2174,7 +2265,7 @@
       pGames: 0,
       aiGames: 0,
       waitingForServe: true,
-      bannerText: 'SWING PHONE OR SWIPE TO SERVE!',
+      bannerText: 'MOVE TO WAGGLE RACKET • SWING OR SWIPE TO SERVE!',
       shotFeedback: '',
       shotFeedbackSub: '',
       shotFeedbackColor: '#d4ff00',
@@ -2186,11 +2277,17 @@
       prevX: 0,
       targetX: 0,
       z: 4,
-      swingAnim: 0,
+      swingProgress: 0,      // 0 = Not swinging, 0.01 -> 1.0 = Full 4-phase biomechanical swing
+      activeSwingType: 'FOREHAND', // 'FOREHAND', 'BACKHAND', or 'SERVE'
       swingCooldown: 0,
       racketSide: 1,
       awkwardReachTimer: 0,
-      stridePhase: 0
+      stridePhase: 0,
+      // Spring-damper physical state for 1st-person wrist & racket head inertia
+      wristPos: new THREE.Vector3(3.2, -3.5, -6.5),
+      wristVel: new THREE.Vector3(0, 0, 0),
+      racketRot: new THREE.Vector3(0.35, -0.2, -0.35),
+      racketRotVel: new THREE.Vector3(0, 0, 0)
     };
     const ai = { x: 0, prevX: 0, z: 96, speed: 2.35, swingAnim: 0, stridePhase: 0 };
     const ball = {
@@ -2215,12 +2312,12 @@
       player.x = 20;
       player.targetX = 20;
       ai.x = -20;
-      const serveOffset = motionState.handedness === 'RIGHT' ? 12 : -12;
+      const serveOffset = motionState.handedness === 'RIGHT' ? 6 : -6;
       ball.x = player.x + serveOffset;
-      ball.y = 22;
-      ball.z = player.z + 4;
+      ball.y = 20;
+      ball.z = player.z + 5;
       ball.vx = 0; ball.vy = 0; ball.vz = 0;
-      scoreState.bannerText = 'SWING PHONE OR CLICK/SWIPE TO SERVE!';
+      scoreState.bannerText = 'MOVE TO WAGGLE RACKET • SWING OR SWIPE TO SERVE!';
     }
 
     function showFeedback(text, subText = '', color = '#d4ff00') {
@@ -2236,14 +2333,16 @@
       const swingStroke = explicitStroke || motionState.currentStance;
       motionState.currentStance = swingStroke;
       player.racketSide = getSideForStroke(swingStroke);
-      player.swingAnim = 1.0;
-      player.swingCooldown = 15;
+      player.swingProgress = 0.01;
+      player.swingCooldown = 22;
+      sfx.playSwoosh(power);
       updateTelemetryUI();
 
-      // 1. Serving
+      // 1. Serving (Executes Trophy Pose Overhead Smash Animation)
       if (scoreState.waitingForServe) {
+        player.activeSwingType = 'SERVE';
         scoreState.waitingForServe = false;
-        ball.y = 32;
+        ball.y = 33;
         const aimAngle = aimOverride !== null ? aimOverride : (motionState.tiltGamma / 40);
         ball.vx = (-0.8 + aimAngle * 1.1) * 1.7;
         ball.vz = 1.75 * Math.min(1.35, Math.max(0.95, power));
@@ -2256,17 +2355,19 @@
         spawnHitSparks3D(ball.x, ball.y, ball.z, 0xd4ff00, 18);
         showFeedback(
           power > 1.25 ? '⚡ POWER SERVE!' : 'CLEAN SERVE!',
-          `${swingStroke} MOTION`,
+          'OVERHEAD PRONATION MOTION',
           '#d4ff00'
         );
         return;
       }
 
+      player.activeSwingType = swingStroke;
+
       // 2. Returning Ball with Forehand / Backhand Side Matching
       const dz = ball.z - player.z;
       const dx = Math.abs(ball.x - player.x);
 
-      if (ball.vz < 0 && dz > -15 && dz < 46 && dx < 145) {
+      if (ball.vz < 0 && dz > -15 && dz < 48 && dx < 148) {
         const requiredStroke = getRequiredStrokeForBall(ball.x, player.x);
         const isMatchedStroke = (swingStroke === requiredStroke);
 
@@ -2292,7 +2393,7 @@
           spawnHitSparks3D(ball.x, ball.y, ball.z, sparkHex, 22);
           showFeedback(
             `⚡ CLEAN ${swingStroke}!`,
-            '1.2x POWER BONUS',
+            '1.2x LOW-TO-HIGH TOPSPIN BONUS',
             strokeColor
           );
         } else {
@@ -2322,7 +2423,7 @@
     }
 
     function awardPoint(winner) {
-      crowdCheerTimer = 75; // Trigger 3D stadium crowd jump!
+      crowdCheerTimer = 75;
       if (winner === 'PLAYER') {
         scoreState.pIdx++;
         sfx.playCrowdApplause(true);
@@ -2359,11 +2460,10 @@
     }
 
     /******************************************************************
-     * 6. DIRECTIONAL TOUCH SWIPE & MOUSE CONTROLS
+     * 6. 1:1 MOUSE / TOUCH IK WAGGLE & SWIPE CONTROLS
      ******************************************************************/
     let pointerDown = false;
     let pointerStart = { x: 0, y: 0, time: 0 };
-    let mouseRollPreview = 0;
 
     hudCanvas.addEventListener('pointerdown', (e) => {
       sfx.init();
@@ -2373,15 +2473,16 @@
 
     hudCanvas.addEventListener('pointermove', (e) => {
       if (motionState.eventsReceived === 0 && (!peerConn || !peerConn.open)) {
-        const normX = (e.clientX / window.innerWidth) * 2 - 1;
-        player.targetX = normX * 145;
-        mouseRollPreview = normX * 28;
-        motionState.tiltGamma = mouseRollPreview;
+        const normX = (e.clientX / window.innerWidth) * 2 - 1;   // -1 (Left) to +1 (Right)
+        const normY = 1 - (e.clientY / window.innerHeight) * 2;  // -1 (Low) to +1 (High)
 
-        const cursorWorldX = normX * 160;
-        const previewStroke = getRequiredStrokeForBall(cursorWorldX, player.x);
-        motionState.currentStance = previewStroke;
-        player.racketSide = getSideForStroke(previewStroke);
+        player.targetX = normX * 145;
+        // Map 2D mouse position to 3D wrist roll, pitch, and arm sweep so moving the cursor feels like holding the racket!
+        motionState.tiltGamma = normX * 38;
+        motionState.tiltBeta = normY * 35;
+        motionState.tiltAlpha = -normX * 32;
+
+        updateStanceFromWrist(motionState.tiltGamma);
         updateTelemetryUI();
       }
     });
@@ -2393,7 +2494,7 @@
       const dy = pointerStart.y - e.clientY;
       const dt = Math.max(16, performance.now() - pointerStart.time);
       const swipeSpeed = Math.sqrt(dx * dx + dy * dy) / dt;
-      const power = Math.min(1.35, Math.max(0.95, 0.9 + swipeSpeed * 0.32));
+      const power = Math.min(1.38, Math.max(0.95, 0.92 + swipeSpeed * 0.32));
       const aim = Math.max(-1, Math.min(1, dx / 160));
 
       let swipeStroke;
@@ -2413,7 +2514,7 @@
     });
 
     /******************************************************************
-     * 7. PHYSICS UPDATE, FIRST-PERSON RACKET SYNC & CAMERA MODES
+     * 7. BIOMECHANICAL 1ST-PERSON IK SOLVER & 3D SCENE SYNC
      ******************************************************************/
     function onWindowResize() {
       const w = window.innerWidth;
@@ -2429,7 +2530,12 @@
 
     function updatePhysics() {
       if (player.swingCooldown > 0) player.swingCooldown--;
-      if (player.swingAnim > 0) player.swingAnim = Math.max(0, player.swingAnim - 0.075);
+      if (player.swingProgress > 0) {
+        player.swingProgress += 0.036; // Smooth 28-frame biomechanical swing curve
+        if (player.swingProgress >= 1.0) {
+          player.swingProgress = 0;
+        }
+      }
       if (player.awkwardReachTimer > 0) player.awkwardReachTimer--;
       if (ai.swingAnim > 0) ai.swingAnim = Math.max(0, ai.swingAnim - 0.075);
       if (scoreState.shotFeedbackTimer > 0) scoreState.shotFeedbackTimer--;
@@ -2440,18 +2546,19 @@
       ai.prevX = ai.x;
 
       if (!scoreState.waitingForServe) {
-        const desiredStanceOffset = -player.racketSide * 16;
-        player.targetX = (ball.x * 0.8) + desiredStanceOffset;
+        const desiredStanceOffset = -player.racketSide * 14;
+        player.targetX = (ball.x * 0.82) + desiredStanceOffset;
       }
 
       player.x += (player.targetX - player.x) * 0.18;
       player.x = Math.max(-160, Math.min(160, player.x));
 
       if (scoreState.waitingForServe) {
-        const serveSide = getSideForStroke(motionState.currentStance);
-        ball.x = player.x + serveSide * 13;
-        ball.y = 22 + Math.sin(performance.now() * 0.006) * 3;
-        ball.z = player.z + 5;
+        const rightFactor = motionState.handedness === 'RIGHT' ? 1 : -1;
+        // In Serve Ready Stance, the ball rests in the player's non-dominant toss hand!
+        ball.x = player.x - rightFactor * 4.5;
+        ball.y = 19.5 + Math.sin(performance.now() * 0.005) * 1.2;
+        ball.z = player.z + 5.2;
         return;
       }
 
@@ -2526,6 +2633,215 @@
       }
     }
 
+    // Update First-Person Arm IK, Spring-Damper Wrist Lag & 4-Phase Biomechanical Splines
+    function updateFirstPersonBiomechanicalRig(now) {
+      const handSign = motionState.handedness === 'RIGHT' ? 1 : -1;
+      const isFH = motionState.currentStance === 'FOREHAND';
+      const rollRad = (motionState.tiltGamma * Math.PI) / 180;
+      const pitchRad = (motionState.tiltBeta * Math.PI) / 180;
+      const yawRad = (motionState.tiltAlpha * Math.PI) / 180;
+
+      // 1. Define Anatomical Shoulder Positions in Camera Space (Eyes are at 0,0,0)
+      const domShoulder = new THREE.Vector3(handSign * 3.8, -4.5, 1.4);
+      const offShoulder = new THREE.Vector3(-handSign * 3.8, -4.5, 1.4);
+
+      let targetWristPos = new THREE.Vector3();
+      let targetRot = new THREE.Vector3(); // Euler X (pitch), Y (yaw), Z (roll/cant)
+      let showOffHand = false;
+      let offHandPos = new THREE.Vector3();
+
+      if (player.swingProgress > 0) {
+        // --- ACTIVE 4-PHASE BIOMECHANICAL SWING TRAJECTORY ---
+        const t = player.swingProgress;
+
+        if (player.activeSwingType === 'SERVE') {
+          // OVERHEAD SERVE BIOMECHANICS: Trophy Pose -> Backscratch Drop -> High Overhead Pronation Smash -> Across Left Hip
+          const serveWaypoints = [
+            { pos: new THREE.Vector3(handSign * 2.2, -3.4, -6.5), rotX: -0.35, rotY: 0.0, rotZ: -handSign * 0.25 },
+            // Phase 1: Trophy Pose & Racket Drop behind head
+            { pos: new THREE.Vector3(handSign * 4.5, 1.8, -3.5), rotX: 0.95, rotY: -handSign * 0.6, rotZ: -handSign * 1.35 },
+            // Phase 2: High Overhead Reach + Pronation Snap at Contact
+            { pos: new THREE.Vector3(handSign * 1.4, 4.6, -8.8), rotX: -0.55, rotY: 0.0, rotZ: handSign * 0.15 },
+            // Phase 3: Follow-through down across opposite hip
+            { pos: new THREE.Vector3(-handSign * 4.2, -5.2, -6.8), rotX: -1.35, rotY: handSign * 0.85, rotZ: handSign * 1.4 },
+            // Phase 4: Recovery to Ready Stance
+            { pos: new THREE.Vector3(handSign * 2.8, -3.6, -6.8), rotX: -0.35, rotY: -handSign * 0.2, rotZ: -handSign * 0.35 }
+          ];
+          const sample = sampleSwingWaypoints(serveWaypoints, t);
+          targetWristPos.copy(sample.pos);
+          targetRot.set(sample.rotX, sample.rotY, sample.rotZ);
+
+          // Left Toss Arm reaches up during early serve toss
+          if (t < 0.45) {
+            showOffHand = true;
+            const tossArc = Math.sin((t / 0.45) * Math.PI);
+            offHandPos.set(-handSign * 2.2, -2.5 + tossArc * 6.5, -7.2);
+          }
+        } else if (player.activeSwingType === 'FOREHAND') {
+          // FOREHAND BIOMECHANICS: Unit Turn & Racket Drop -> Butt-Cap Lag -> Low-to-High Topspin Whip -> Windshield-Wiper Over Left Shoulder
+          const fhWaypoints = [
+            // Start from current live stance
+            { pos: new THREE.Vector3(handSign * 4.5, -3.8, -6.2), rotX: -0.25, rotY: -handSign * 0.45, rotZ: -handSign * 0.55 },
+            // Phase 1: Unit Turn & Low Racket Drop ("Pat the Dog")
+            { pos: new THREE.Vector3(handSign * 6.8, -5.6, -4.2), rotX: 0.42, rotY: -handSign * 1.05, rotZ: -handSign * 1.28 },
+            // Phase 2: Forward Contact Point in front of lead hip (Square stringbed + upward brush)
+            { pos: new THREE.Vector3(handSign * 2.4, -2.2, -10.6), rotX: -0.48, rotY: handSign * 0.15, rotZ: -handSign * 0.92 },
+            // Phase 3: Windshield-Wiper Topspin Pronation & High Over-Opposite-Shoulder Finish
+            { pos: new THREE.Vector3(-handSign * 5.2, 1.4, -6.8), rotX: -0.65, rotY: handSign * 1.25, rotZ: handSign * 1.55 },
+            // Phase 4: Smooth Recovery to Ready Position
+            { pos: new THREE.Vector3(handSign * 3.2, -3.6, -6.8), rotX: -0.35, rotY: -handSign * 0.25, rotZ: -handSign * 0.4 }
+          ];
+          const sample = sampleSwingWaypoints(fhWaypoints, t);
+          targetWristPos.copy(sample.pos);
+          targetRot.set(sample.rotX, sample.rotY, sample.rotZ);
+        } else {
+          // BACKHAND BIOMECHANICS: Coiled Hip Takeback -> Low-to-High Drive -> Classic High Wide Extension Follow-Through
+          const bhWaypoints = [
+            { pos: new THREE.Vector3(-handSign * 3.8, -3.8, -6.2), rotX: -0.25, rotY: handSign * 0.55, rotZ: handSign * 0.65 },
+            // Phase 1: Deep Coiled Backhand Takeback at Left Hip
+            { pos: new THREE.Vector3(-handSign * 6.4, -5.4, -4.5), rotX: 0.35, rotY: handSign * 1.15, rotZ: handSign * 1.32 },
+            // Phase 2: Out-in-Front Contact Zone (Knuckles leading, low-to-high brush)
+            { pos: new THREE.Vector3(-handSign * 1.8, -2.1, -10.8), rotX: -0.52, rotY: -handSign * 0.1, rotZ: handSign * 0.95 },
+            // Phase 3: High Wide Backhand Extension Finish
+            { pos: new THREE.Vector3(handSign * 5.6, 2.2, -7.2), rotX: -0.45, rotY: -handSign * 1.15, rotZ: -handSign * 1.15 },
+            // Phase 4: Smooth Recovery
+            { pos: new THREE.Vector3(-handSign * 2.8, -3.6, -6.8), rotX: -0.35, rotY: handSign * 0.3, rotZ: handSign * 0.45 }
+          ];
+          const sample = sampleSwingWaypoints(bhWaypoints, t);
+          targetWristPos.copy(sample.pos);
+          targetRot.set(sample.rotX, sample.rotY, sample.rotZ);
+        }
+      } else {
+        // --- 1:1 LIVE CONTINUOUS MOTION TRACKING (WAGGLE, UNIT TURN, PITCH & ROLL) ---
+        const idleBreath = Math.sin(now * 0.005) * 0.16;
+
+        // Horizontal hand sweep across body driven by wrist roll + yaw + live lateral acceleration
+        const stanceBaseX = isFH ? (handSign * 3.3) : (-handSign * 2.6);
+        const liveSweepX = THREE.MathUtils.clamp(
+          stanceBaseX + (rollRad * 3.8) - (yawRad * 2.6) + (motionState.accelX * 0.14),
+          -6.8,
+          6.8
+        );
+
+        // Vertical hand height driven by phone pitch + vertical acceleration
+        const liveHeightY = THREE.MathUtils.clamp(
+          -3.6 + (pitchRad * 2.8) + (motionState.accelY * 0.12) + idleBreath,
+          -6.2,
+          2.5
+        );
+
+        // Depth (Z): Coils slightly closer to body when turned wide for a takeback
+        const coilDepthZ = -6.8 + Math.abs(liveSweepX) * 0.22 - Math.min(1.8, motionState.accelMag * 0.1);
+
+        targetWristPos.set(liveSweepX, liveHeightY, coilDepthZ);
+
+        // Natural Racket Orientation:
+        // rotX = Forward tilt toward net + pitch angle
+        // rotY = Unit-turn angle across body
+        // rotZ = Racket head cant + forearm pronation/supination
+        const cantAngle = isFH
+          ? (-handSign * 0.42 - rollRad * 0.85)
+          : (handSign * 0.48 - rollRad * 0.85);
+
+        targetRot.set(
+          -0.38 + pitchRad * 0.75,
+          -liveSweepX * 0.11 + yawRad * 0.5,
+          cantAngle
+        );
+
+        // Show Left Off-Hand either holding the ball on Serve or cradling the racket throat in Ready Stance
+        if (scoreState.waitingForServe) {
+          showOffHand = true;
+          offHandPos.set(-handSign * 2.2, -3.1 + idleBreath * 1.4, -6.5);
+        } else if (Math.abs(liveSweepX) < 3.4) {
+          showOffHand = true;
+          // Cradles the racket throat
+          offHandPos.set(liveSweepX - handSign * 1.1, liveHeightY + 2.8, coilDepthZ - 1.2);
+        }
+      }
+
+      // 2. Apply Spring-Damper Physics for Realistic Racket Weight & Wrist Lag
+      const posStiffness = player.swingProgress > 0 ? 0.48 : 0.28;
+      const posDamping = 0.52;
+      player.wristVel.x = (player.wristVel.x + (targetWristPos.x - player.wristPos.x) * posStiffness) * posDamping;
+      player.wristVel.y = (player.wristVel.y + (targetWristPos.y - player.wristPos.y) * posStiffness) * posDamping;
+      player.wristVel.z = (player.wristVel.z + (targetWristPos.z - player.wristPos.z) * posStiffness) * posDamping;
+      player.wristPos.add(player.wristVel);
+
+      // Rotational spring-damper with inertial lag from linear wrist velocity (racket head trails handle on acceleration!)
+      const lagPitch = -player.wristVel.y * 0.28;
+      const lagRoll = player.wristVel.x * 0.35;
+      const rotStiffness = player.swingProgress > 0 ? 0.45 : 0.25;
+      const rotDamping = 0.50;
+
+      player.racketRotVel.x = (player.racketRotVel.x + ((targetRot.x + lagPitch) - player.racketRot.x) * rotStiffness) * rotDamping;
+      player.racketRotVel.y = (player.racketRotVel.y + (targetRot.y - player.racketRot.y) * rotStiffness) * rotDamping;
+      player.racketRotVel.z = (player.racketRotVel.z + ((targetRot.z + lagRoll) - player.racketRot.z) * rotStiffness) * rotDamping;
+      player.racketRot.add(player.racketRotVel);
+
+      // 3. Solve 2-Bone Analytical IK for Dominant Arm (Shoulder -> Elbow -> Wrist)
+      const poleHint = new THREE.Vector3(handSign * 1.2, -1.0, 0.6).normalize();
+      const elbowPos = solveArmIK(domShoulder, player.wristPos, 4.8, 5.0, poleHint);
+
+      alignLimbSegment(fpvRig.upperArmSleeve, domShoulder, elbowPos, 0.0, 0.42);
+      alignLimbSegment(fpvRig.upperArmBicep, domShoulder, elbowPos, 0.38, 1.0);
+      fpvRig.elbowSphere.position.copy(elbowPos);
+
+      alignLimbSegment(fpvRig.forearmMesh, elbowPos, player.wristPos, 0.0, 0.84);
+      alignLimbSegment(fpvRig.wristbandMesh, elbowPos, player.wristPos, 0.80, 0.96);
+      alignLimbSegment(fpvRig.wristbandStripe, elbowPos, player.wristPos, 0.86, 0.90);
+
+      // Position & Orient Wrist + Racket
+      fpvRig.wristPivot.position.copy(player.wristPos);
+      fpvRig.wristPivot.rotation.set(
+        player.racketRot.x,
+        player.racketRot.y,
+        player.racketRot.z,
+        'YXZ'
+      );
+
+      fpvRig.proRacket.frameMat.color.setHex(isFH ? 0x00f0ff : 0xc084fc);
+      fpvRig.proRacket.frameMat.emissive.setHex(isFH ? 0x00f0ff : 0xc084fc);
+
+      // 4. Update Off-Hand (Left Arm) Visibility & Segment Alignment
+      fpvRig.offArmForearm.visible = showOffHand;
+      fpvRig.offArmWristband.visible = showOffHand;
+      fpvRig.offHandSphere.visible = showOffHand;
+      if (showOffHand) {
+        const offElbow = new THREE.Vector3(-handSign * 3.5, -4.8, -2.5);
+        alignLimbSegment(fpvRig.offArmForearm, offElbow, offHandPos, 0.0, 0.84);
+        alignLimbSegment(fpvRig.offArmWristband, offElbow, offHandPos, 0.82, 0.96);
+        fpvRig.offHandSphere.position.copy(offHandPos);
+      }
+
+      // 5. Update 3D Volumetric Racket Swoosh Ribbon in World Space
+      fpvRig.fpvGroup.updateMatrixWorld(true);
+      const tipWorld = new THREE.Vector3();
+      const throatWorld = new THREE.Vector3();
+      fpvRig.proRacket.tipMarker.getWorldPosition(tipWorld);
+      fpvRig.proRacket.throatMarker.getWorldPosition(throatWorld);
+
+      fpvRig.swooshHistory.unshift({ tip: tipWorld.clone(), throat: throatWorld.clone() });
+      if (fpvRig.swooshHistory.length > 18) fpvRig.swooshHistory.pop();
+
+      const swooshSpeed = player.wristVel.length() + player.racketRotVel.length() * 3.2;
+      const targetSwooshOpacity = (player.swingProgress > 0 || swooshSpeed > 0.45)
+        ? Math.min(0.55, swooshSpeed * 0.42)
+        : 0.0;
+      fpvRig.swooshMesh.material.opacity += (targetSwooshOpacity - fpvRig.swooshMesh.material.opacity) * 0.25;
+      fpvRig.swooshMesh.material.color.setHex(isFH ? 0x00f0ff : 0xc084fc);
+
+      if (fpvRig.swooshHistory.length >= 2) {
+        const attr = fpvRig.swooshMesh.geometry.attributes.position;
+        for (let i = 0; i < 18; i++) {
+          const sample = fpvRig.swooshHistory[Math.min(i, fpvRig.swooshHistory.length - 1)];
+          attr.setXYZ(i * 2, sample.tip.x, sample.tip.y, sample.tip.z);
+          attr.setXYZ(i * 2 + 1, sample.throat.x, sample.throat.y, sample.throat.z);
+        }
+        attr.needsUpdate = true;
+      }
+    }
+
     const crowdDummy = new THREE.Object3D();
     function sync3DScene() {
       const now = performance.now();
@@ -2533,13 +2849,13 @@
       const isFPV = (camMode === 'FPV');
       const isFH = motionState.currentStance === 'FOREHAND';
       const sideSign = player.racketSide;
-      const swingArc = Math.sin(player.swingAnim * Math.PI);
+      const swingArc = Math.sin(player.swingProgress * Math.PI);
 
-      // 1. Toggle visibility between First-Person Foreground Racket vs. Third-Person Athlete
       fpvRig.fpvGroup.visible = isFPV;
+      fpvRig.swooshMesh.visible = isFPV;
       player3D.root.visible = !isFPV;
 
-      // 2. Sync Third-Person Near Athlete (for Action Cam & Broadcast Cam)
+      // 1. Sync Third-Person Near Athlete (for Action Cam & Broadcast Cam)
       const px3 = to3DX(player.x);
       const pz3 = to3DZ(player.z);
       const splitStepBounce = Math.abs(Math.sin(now * 0.008)) * 0.45;
@@ -2562,7 +2878,7 @@
       player3D.racketObj.frameMat.emissive.setHex(isFH ? 0x00f0ff : 0xc084fc);
       player3D.jerseyMat.color.setHex(player.awkwardReachTimer > 0 ? 0xf59e0b : 0x0284c7);
 
-      // 3. Sync Far AI Pro Athlete
+      // 2. Sync Far AI Pro Athlete
       const aix3 = to3DX(ai.x);
       const aiz3 = to3DZ(ai.z);
       const aiSplitBounce = Math.abs(Math.cos(now * 0.0085)) * 0.45;
@@ -2578,7 +2894,7 @@
       ai3D.torsoPivot.rotation.y = -0.4 + aiSwingArc * 1.2;
       ai3D.rightArm.shoulderPivot.rotation.x = -0.35 + aiSwingArc * 1.45;
 
-      // 4. Sync Ball & 3D Trail
+      // 3. Sync Ball & 3D Trail
       const bx3 = to3DX(ball.x);
       const by3 = Math.max(1.5, to3DY(ball.y));
       const bz3 = to3DZ(ball.z);
@@ -2598,52 +2914,39 @@
         }
       }
 
-      // 5. Camera Positioning & First-Person Racket Rig Kinematics
+      // 4. Camera Positioning & First-Person Biomechanical Rig
       const shakeX = (Math.random() - 0.5) * cameraShake * 1.8;
       const shakeY = (Math.random() - 0.5) * cameraShake * 1.8;
 
       if (camMode === 'FPV') {
-        // Eye-Level First-Person View on the Baseline
-        const targetCamX = px3 + sideSign * 1.5;
-        camera.position.x += (targetCamX - camera.position.x) * 0.22 + shakeX * 0.5;
-        camera.position.y = 17.5 + Math.sin(now * 0.007) * 0.22 + shakeY * 0.5;
-        camera.position.z = pz3 + 4.5;
+        const targetCamX = px3;
+        camera.position.x += (targetCamX - camera.position.x) * 0.24 + shakeX * 0.45;
+        camera.position.y = 17.5 + Math.sin(now * 0.007) * 0.18 + shakeY * 0.45;
+        camera.position.z = pz3 + 4.8;
 
-        // Subtle head-track toward incoming ball while looking across net
-        const lookX = (bx3 * 0.35) + (aix3 * 0.15);
-        const lookY = Math.max(8, Math.min(24, by3 * 0.45 + 6));
-        camera.lookAt(lookX, lookY, -35);
+        const lookX = (bx3 * 0.32) + (aix3 * 0.15);
+        const lookY = Math.max(8, Math.min(24, by3 * 0.42 + 6));
+        camera.lookAt(lookX, lookY, -38);
 
-        // Position First-Person Racket Rig directly in front of Camera
+        // Attach First-Person Rig to Camera Pose & Solve Real-Time Biomechanical IK
         fpvRig.fpvGroup.position.copy(camera.position);
-        fpvRig.fpvGroup.rotation.copy(camera.rotation);
+        fpvRig.fpvGroup.quaternion.copy(camera.quaternion);
+        updateFirstPersonBiomechanicalRig(now);
 
-        // Offset racket to right (Forehand) or left (Backhand) of viewport + swing whip
-        const wristTiltRad = (motionState.tiltGamma * Math.PI) / 180;
-        const targetHandX = sideSign * 4.8 - (swingArc * sideSign * 8.5);
-        const targetHandY = -4.8 + Math.sin(now * 0.007) * 0.18 + (swingArc * 3.4);
-        const targetHandZ = -10.8 - (swingArc * 4.2);
-
-        fpvRig.swingPivot.position.x += (targetHandX - fpvRig.swingPivot.position.x) * 0.32;
-        fpvRig.swingPivot.position.y += (targetHandY - fpvRig.swingPivot.position.y) * 0.32;
-        fpvRig.swingPivot.position.z += (targetHandZ - fpvRig.swingPivot.position.z) * 0.32;
-
-        // Racket face orientation & follow-through rotation
-        fpvRig.swingPivot.rotation.z = -sideSign * 0.38 - wristTiltRad * 0.55 + (swingArc * sideSign * 1.65);
-        fpvRig.swingPivot.rotation.x = 0.22 - (swingArc * 1.15);
-        fpvRig.swingPivot.rotation.y = -sideSign * 0.25 + (swingArc * sideSign * 1.2);
-
-        fpvRig.proRacket.frameMat.color.setHex(isFH ? 0x00f0ff : 0xc084fc);
-        fpvRig.proRacket.frameMat.emissive.setHex(isFH ? 0x00f0ff : 0xc084fc);
+        // If waiting for serve in FPV, place the tennis ball directly in the player's visible left toss hand!
+        if (scoreState.waitingForServe && fpvRig.offHandSphere.visible) {
+          fpvRig.fpvGroup.updateMatrixWorld(true);
+          const handWorld = new THREE.Vector3();
+          fpvRig.offHandSphere.getWorldPosition(handWorld);
+          ballMesh.position.set(handWorld.x, handWorld.y + 1.4, handWorld.z - 0.4);
+        }
       } else if (camMode === 'ACTION') {
-        // Low Over-The-Shoulder Action Camera (Shows Full Sculpted 3D Athlete Close-Up)
         const camTargetX = px3 * 0.65;
         camera.position.x += (camTargetX - camera.position.x) * 0.12 + shakeX;
         camera.position.y = 34 + shakeY;
         camera.position.z = pz3 + 42;
         camera.lookAt(px3 * 0.3, 12, -20);
       } else {
-        // Classic High TV Broadcast View
         const camTargetX = px3 * 0.28;
         camera.position.x += (camTargetX - camera.position.x) * 0.08 + shakeX;
         camera.position.y = 66 + shakeY;
@@ -2651,7 +2954,7 @@
         camera.lookAt(px3 * 0.12, 8, -10);
       }
 
-      // 6. Animate Stadium Crowd Cheering on Points
+      // 5. Animate Stadium Crowd Cheering on Points
       if (crowdInstancedMesh && (crowdCheerTimer > 0 || Math.floor(now / 16) % 3 === 0)) {
         const amp = crowdCheerTimer > 0 ? 1.8 : 0.22;
         const speed = crowdCheerTimer > 0 ? 0.025 : 0.004;
@@ -2665,7 +2968,7 @@
         crowdInstancedMesh.instanceMatrix.needsUpdate = true;
       }
 
-      // 7. Update Bounce Rings & 3D Sparks
+      // 6. Update Bounce Rings & 3D Sparks
       for (let i = bounceMarks.length - 1; i >= 0; i--) {
         const bm = bounceMarks[i];
         bm.age++;
@@ -2698,7 +3001,6 @@
       const h = hudCanvas.height;
       hudCtx.clearRect(0, 0, w, h);
 
-      // Project 3D Ball into 2D Screen Coordinates for Target Reticle (`FH` / `BH`)
       if (!scoreState.waitingForServe && ball.vz < 0 && ball.z < 58 && ball.z > -10) {
         tempVec.copy(ballMesh.position);
         tempVec.project(camera);
@@ -2738,12 +3040,12 @@
         hudCtx.strokeStyle = 'rgba(212, 255, 0, 0.45)';
         hudCtx.lineWidth = 1.5;
         hudCtx.beginPath();
-        hudCtx.roundRect(w / 2 - 190, h * 0.16, 380, 42, 12);
+        hudCtx.roundRect(w / 2 - 210, h * 0.16, 420, 42, 12);
         hudCtx.fill();
         hudCtx.stroke();
 
         hudCtx.fillStyle = '#d4ff00';
-        hudCtx.font = '800 14px system-ui, sans-serif';
+        hudCtx.font = '800 13px system-ui, sans-serif';
         hudCtx.textAlign = 'center';
         hudCtx.fillText(scoreState.bannerText, w / 2, h * 0.16 + 26);
         hudCtx.restore();
@@ -2803,7 +3105,7 @@
       const ok = await enableMotionSensors();
       if (ok) {
         document.getElementById('sensorDot').classList.add('live');
-        document.getElementById('sensorStatusText').textContent = '3D Smart FH/BH Motion Active';
+        document.getElementById('sensorStatusText').textContent = '60Hz 1st-Person Biomechanical IK Active';
       }
     });
 
@@ -2845,15 +3147,8 @@
       e.target.textContent = `Sens: ${SENSITIVITY_PRESETS[sensitivityIdx].label}`;
     });
 
-    document.getElementById('btnCalibrate').addEventListener('click', () => {
-      motionState.tiltOffset = motionState.rawGamma;
-      if (navigator.vibrate) navigator.vibrate(25);
-    });
-
-    document.getElementById('btnCenterRacket').addEventListener('click', () => {
-      motionState.tiltOffset = motionState.rawGamma;
-      if (navigator.vibrate) navigator.vibrate(25);
-    });
+    document.getElementById('btnCalibrate').addEventListener('click', calibrateNeutralGrip);
+    document.getElementById('btnCenterRacket').addEventListener('click', calibrateNeutralGrip);
 
     document.getElementById('btnTapFH').addEventListener('click', () => {
       const aimRatio = motionState.tiltGamma / 40;
