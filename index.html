@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Motion Tennis — Android & iOS Fixed</title>
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: rgba(15, 23, 42, 0.9);
+      --accent: #ccff00;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --danger: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      touch-action: none;
+    }
+
+    #gameCanvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    /* Top HUD */
+    #hud {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      pointer-events: none;
+      z-index: 10;
+      gap: 8px;
+    }
+
+    .scoreboard {
+      background: var(--panel);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      padding: 8px 14px;
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+    }
+
+    .score-col {
+      text-align: center;
+    }
+
+    .score-label {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    .score-val {
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: var(--accent);
+      line-height: 1.1;
+    }
+
+    .score-games {
+      font-size: 0.72rem;
+      color: #cbd5e1;
+    }
+
+    .controls-bar {
+      pointer-events: auto;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      background: var(--panel);
+      color: var(--text);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #0f172a;
+      border-color: var(--accent);
+      font-weight: 700;
+    }
+
+    /* Warning Banner for file:// or Blocked Sensors */
+    #securityBanner {
+      position: fixed;
+      top: 78px;
+      left: 12px;
+      right: 12px;
+      background: rgba(239, 68, 68, 0.95);
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      line-height: 1.35;
+      z-index: 25;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+    }
+
+    /* Bottom Live Sensor Telemetry Bar */
+    .sensor-pill {
+      position: fixed;
+      bottom: 12px;
+      left: 12px;
+      right: 12px;
+      background: var(--panel);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 0.78rem;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      pointer-events: auto;
+    }
+
+    .sensor-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #64748b;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+    .dot.live {
+      background: #22c55e;
+      box-shadow: 0 0 8px #22c55e;
+    }
+    .dot.warn {
+      background: #f59e0b;
+      box-shadow: 0 0 8px #f59e0b;
+    }
+
+    .mini-meter-bg {
+      flex: 1;
+      height: 10px;
+      background: #1e293b;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    .mini-meter-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #22c55e, #ccff00, #ef4444);
+      transition: width 0.05s linear;
+    }
+
+    /* Modal / Menu Screen */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 30;
+      padding: 16px;
+      overflow-y: auto;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .card {
+      background: #1e293b;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 18px;
+      max-width: 520px;
+      width: 100%;
+      padding: 20px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    }
+
+    .card h1 {
+      font-size: 1.55rem;
+      margin-bottom: 6px;
+    }
+
+    .card p.sub {
+      color: var(--muted);
+      font-size: 0.88rem;
+      margin-bottom: 14px;
+      line-height: 1.4;
+    }
+
+    .mode-grid {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .mode-option {
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 12px;
+      padding: 12px 14px;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .mode-option:hover, .mode-option:active {
+      border-color: var(--accent);
+    }
+
+    .mode-option h3 {
+      font-size: 0.96rem;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+
+    .mode-option p {
+      font-size: 0.8rem;
+      color: #cbd5e1;
+      line-height: 1.35;
+    }
+
+    /* Dedicated Phone Controller UI */
+    #racketControllerUI {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at center, #1e293b 0%, #090d16 100%);
+      z-index: 40;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .grip-zone {
+      flex: 1;
+      margin: 16px 0;
+      border: 3px dashed rgba(204, 255, 0, 0.35);
+      border-radius: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+    }
+
+    .room-code-box {
+      font-family: monospace;
+      font-size: 1.9rem;
+      letter-spacing: 6px;
+      font-weight: 800;
+      color: var(--accent);
+      background: #0f172a;
+      padding: 8px 16px;
+      border-radius: 10px;
+      display: inline-block;
+      margin: 8px 0;
+      border: 1px solid rgba(204, 255, 0, 0.4);
+    }
+
+    .input-code {
+      font-family: monospace;
+      font-size: 1.4rem;
+      letter-spacing: 4px;
+      text-align: center;
+      padding: 8px;
+      width: 160px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      background: #0f172a;
+      color: var(--accent);
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top HUD -->
+  <div id="hud">
+    <div class="scoreboard">
+      <div class="score-col">
+        <div class="score-label">YOU</div>
+        <div class="score-val" id="pScore">0</div>
+        <div class="score-games">Games: <span id="pGames">0</span></div>
+      </div>
+      <div style="color:#475569; font-weight:700;">VS</div>
+      <div class="score-col">
+        <div class="score-label">CPU</div>
+        <div class="score-val" id="aiScore">0</div>
+        <div class="score-games">Games: <span id="aiGames">0</span></div>
+      </div>
+    </div>
+
+    <div class="controls-bar">
+      <button class="btn" id="btnCalibrate">Center Tilt</button>
+      <button class="btn" id="btnSensitivity">Sens: High</button>
+      <button class="btn" id="btnOpenMenu">Mode</button>
+    </div>
+  </div>
+
+  <!-- Warning Banner if Chrome blocks sensors due to file:// or HTTP -->
+  <div id="securityBanner" class="hidden"></div>
+
+  <!-- Bottom Live Sensor Status & Swing Meter -->
+  <div class="sensor-pill">
+    <div class="sensor-row">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span class="dot" id="sensorDot"></span>
+        <span id="sensorStatusText">Control: Touch Swipe / Mouse</span>
+      </div>
+      <span id="liveTelemetryText" style="color:var(--accent); font-family:monospace; font-size:0.75rem;">
+        Tilt: 0° | Force: 0.0
+      </span>
+    </div>
+    <div class="sensor-row">
+      <span style="font-size:0.7rem; color:var(--muted); width:68px;">Swing Force:</span>
+      <div class="mini-meter-bg">
+        <div class="mini-meter-fill" id="hudSwingBar"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Menu Modal -->
+  <div class="overlay" id="menuModal">
+    <div class="card">
+      <h1>🎾 Motion Tennis</h1>
+      <p class="sub">Android & iOS Motion Sensor Edition. Choose how you want to play:</p>
+
+      <div class="mode-grid">
+        <div class="mode-option" id="optSinglePhone">
+          <h3>📱 Play on This Phone (Motion Racket Mode)</h3>
+          <p>Hold your phone firmly. <strong>Tilt left/right</strong> to aim and <strong>flick your wrist or swing forward</strong> when the green ring appears around the ball!</p>
+        </div>
+
+        <div class="mode-option" id="optHostPC">
+          <h3>🖥️ + 📱 Dual Screen (PC Court + Phone Racket)</h3>
+          <p>Use this screen as the Court Display and connect your phone wirelessly with a 4-letter code.</p>
+        </div>
+
+        <div class="mode-option" id="optPhoneController">
+          <h3>🎮 Pair This Phone as Wireless Racket</h3>
+          <p>Enter the 4-letter code shown on your PC screen to use your phone purely as a wireless racket controller.</p>
+        </div>
+
+        <div class="mode-option" id="optTouchMouse">
+          <h3>👆 Touch Swipe / Mouse Mode</h3>
+          <p>Swipe your finger upward across the screen (or click) to serve and hit shots.</p>
+        </div>
+      </div>
+
+      <!-- PC Host Code Panel -->
+      <div id="hostPanel" class="hidden" style="text-align:center; padding-top:10px; border-top:1px solid rgba(255,255,255,0.1);">
+        <p style="font-size:0.82rem; color:#cbd5e1;">Open this page on your phone, tap <strong>"Pair This Phone as Wireless Racket"</strong>, and enter:</p>
+        <div class="room-code-box" id="hostRoomCode">----</div>
+        <p id="hostWaitText" style="font-size:0.78rem; color:var(--muted);">Waiting for phone...</p>
+      </div>
+
+      <!-- Phone Join Panel -->
+      <div id="joinPanel" class="hidden" style="text-align:center; padding-top:10px; border-top:1px solid rgba(255,255,255,0.1);">
+        <p style="font-size:0.82rem; color:#cbd5e1; margin-bottom:8px;">Enter the 4-character Room Code from your PC:</p>
+        <div style="display:flex; gap:8px; justify-content:center; align-items:center;">
+          <input type="text" id="joinCodeInput" class="input-code" maxlength="4" placeholder="ABCD" />
+          <button class="btn btn-primary" id="btnConnectPeer">Connect</button>
+        </div>
+        <p id="joinStatusText" style="font-size:0.78rem; color:var(--muted); margin-top:8px;"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dedicated Wireless Phone Racket Controller UI -->
+  <div id="racketControllerUI" class="hidden">
+    <div style="background:rgba(255,255,255,0.06); padding:12px; border-radius:12px;">
+      <div style="font-weight:700; color:var(--accent);">🎾 WIRELESS RACKET ACTIVE</div>
+      <div style="font-size:0.78rem; color:var(--muted);">Swing phone or tap button below to hit</div>
+    </div>
+
+    <div class="grip-zone">
+      <div style="font-size:3rem; margin-bottom:8px;">🎾</div>
+      <h2>Flick Wrist or Swing!</h2>
+      <div style="width:85%; margin:14px 0;">
+        <div class="mini-meter-bg" style="height:16px;">
+          <div class="mini-meter-fill" id="controllerSwingBar"></div>
+        </div>
+      </div>
+      <div id="controllerDebugText" style="font-family:monospace; font-size:0.82rem; color:var(--accent);">
+        Tilt: 0° | Force: 0.0
+      </div>
+      <button class="btn btn-primary" id="btnTapSwingFallback" style="margin-top:20px; padding:14px 24px; font-size:1rem;">
+        TAP TO SERVE / SWING
+      </button>
+    </div>
+
+    <div style="display:flex; gap:10px;">
+      <button class="btn" id="btnCenterRacket" style="flex:1;">Center Tilt</button>
+      <button class="btn" id="btnExitController" style="flex:1;">Exit</button>
+    </div>
+  </div>
+
+  <canvas id="gameCanvas"></canvas>
+
+  <script>
+    /******************************************************************
+     * 1. SOUND ENGINE (Web Audio API)
+     ******************************************************************/
+    class SoundEngine {
+      constructor() { this.ctx = null; }
+      init() {
+        if (!this.ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) this.ctx = new AudioCtx();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+      }
+      playHit(power = 1) {
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(195 * power, now);
+        osc.frequency.exponentialRampToValueAtTime(55, now + 0.09);
+        gain.gain.setValueAtTime(0.45, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.09);
+      }
+      playBounce() {
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(135, now);
+        osc.frequency.exponentialRampToValueAtTime(48, now + 0.06);
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.06);
+      }
+      playScoreTone(win = true) {
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const freqs = win ? [440, 554, 659] : [300, 240];
+        freqs.forEach((f, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(f, now + idx * 0.09);
+          gain.gain.setValueAtTime(0.2, now + idx * 0.09);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.09 + 0.18);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + idx * 0.09);
+          osc.stop(now + idx * 0.09 + 0.18);
+        });
+      }
+    }
+
+    const sfx = new SoundEngine();
+
+    /******************************************************************
+     * 2. ANDROID & iOS MOTION SENSOR ENGINE (FIXED FOR CHROME ANDROID)
+     ******************************************************************/
+    const SENSITIVITY_PRESETS = [
+      { label: 'High', threshold: 7.5 },
+      { label: 'Normal', threshold: 11.5 },
+      { label: 'Low', threshold: 16.5 }
+    ];
+    let sensitivityIdx = 0; // Default to High so wrist flicks work effortlessly on Single-Phone mode
+
+    const motionState = {
+      active: false,
+      eventsReceived: 0,
+      tiltGamma: 0,
+      tiltOffset: 0,
+      rawGamma: 0,
+      accelMag: 0,
+      prevGx: null,
+      prevGy: null,
+      prevGz: null,
+      lastSwingTime: 0
+    };
+
+    function showSecurityNotice(msg) {
+      const banner = document.getElementById('securityBanner');
+      banner.innerHTML = msg;
+      banner.classList.remove('hidden');
+    }
+
+    async function enableMotionSensors() {
+      sfx.init();
+
+      // 1. Check if page is opened via file:// or non-HTTPS where Chrome Android blocks sensors
+      if (!window.isSecureContext) {
+        showSecurityNotice(
+          '<strong>⚠️ Chrome Blocked Motion Sensors (Not HTTPS):</strong> You opened this file over <code>' +
+          window.location.protocol +
+          '</code>. Android Chrome requires <strong>https://</strong> or <strong>localhost</strong> to read motion sensors. Host this file on CodePen, GitHub Pages, or Netlify Drop — or swipe the screen to swing!'
+        );
+        document.getElementById('sensorDot').classList.add('warn');
+        document.getElementById('sensorStatusText').textContent = 'Sensors Blocked (Requires HTTPS)';
+        return false;
+      }
+
+      // 2. Request permission if supported (iOS 13+ & newer Chrome builds)
+      try {
+        if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+          const p1 = await DeviceMotionEvent.requestPermission();
+          if (p1 !== 'granted') {
+            showSecurityNotice('<strong>⚠️ Motion Permission Denied:</strong> Allow Motion Sensors in browser settings.');
+            return false;
+          }
+        }
+        if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+          await DeviceOrientationEvent.requestPermission();
+        }
+      } catch (e) {
+        console.warn('Permission request skipped or non-blocking:', e);
+      }
+
+      startMotionListeners();
+
+      // 3. Watchdog: verify Chrome Android is actually firing sensor events within 1.8s
+      setTimeout(() => {
+        if (motionState.eventsReceived === 0) {
+          showSecurityNotice(
+            '<strong>⚠️ No Sensor Data Detected:</strong> In Android Chrome, open <strong>Menu (⋮) → Settings → Site settings → Motion sensors</strong> and turn it <strong>ON</strong>. (Touch swipe is still active!)'
+          );
+          document.getElementById('sensorDot').classList.remove('live');
+          document.getElementById('sensorDot').classList.add('warn');
+          document.getElementById('sensorStatusText').textContent = 'Sensors Off in Chrome Site Settings';
+        }
+      }, 1800);
+
+      return true;
+    }
+
+    function startMotionListeners() {
+      if (motionState.active) return;
+      motionState.active = true;
+
+      // Orientation Listener (Left/Right Tilt)
+      window.addEventListener('deviceorientation', (e) => {
+        if (e.gamma !== null && e.gamma !== undefined) {
+          motionState.eventsReceived++;
+          motionState.rawGamma = e.gamma;
+          const calibrated = e.gamma - motionState.tiltOffset;
+          motionState.tiltGamma = Math.max(-45, Math.min(45, calibrated));
+          updateTelemetryUI();
+        }
+      });
+
+      // Motion Listener (Fixes Chrome Android null e.acceleration properties)
+      window.addEventListener('devicemotion', (e) => {
+        const acc = e.acceleration;
+        const accG = e.accelerationIncludingGravity;
+        const rot = e.rotationRate;
+
+        let linearMag = 0;
+
+        // Check if true linear acceleration has non-null numeric values
+        if (acc && acc.x !== null && acc.y !== null && acc.z !== null) {
+          motionState.eventsReceived++;
+          linearMag = Math.sqrt(acc.x * acc.x + acc.y * acc.y + acc.z * acc.z);
+        }
+        // Fallback for Android devices that only populate accelerationIncludingGravity
+        else if (accG && accG.x !== null && accG.y !== null && accG.z !== null) {
+          motionState.eventsReceived++;
+          if (motionState.prevGx !== null) {
+            // High-pass delta filter: measures sudden change in acceleration regardless of gravity direction
+            const dx = accG.x - motionState.prevGx;
+            const dy = accG.y - motionState.prevGy;
+            const dz = accG.z - motionState.prevGz;
+            linearMag = Math.sqrt(dx * dx + dy * dy + dz * dz) * 1.35;
+          }
+          motionState.prevGx = accG.x;
+          motionState.prevGy = accG.y;
+          motionState.prevGz = accG.z;
+        }
+
+        // Also factor in gyroscope wrist-flick rotation rate (if available)
+        let rotBoost = 0;
+        if (rot && (rot.alpha !== null || rot.beta !== null || rot.gamma !== null)) {
+          const ra = rot.alpha || 0;
+          const rb = rot.beta || 0;
+          const rg = rot.gamma || 0;
+          const rotMag = Math.sqrt(ra * ra + rb * rb + rg * rg);
+          // Convert deg/sec wrist snap into equivalent swing force
+          rotBoost = rotMag / 22;
+        }
+
+        const combinedForce = Math.max(linearMag, rotBoost);
+        motionState.accelMag = combinedForce;
+        updateTelemetryUI();
+
+        const threshold = SENSITIVITY_PRESETS[sensitivityIdx].threshold;
+        const now = performance.now();
+
+        if (combinedForce > threshold && now - motionState.lastSwingTime > 280) {
+          motionState.lastSwingTime = now;
+          const normPower = Math.min(1.55, Math.max(0.9, combinedForce / threshold));
+          const aimRatio = motionState.tiltGamma / 40;
+
+          if (navigator.vibrate) navigator.vibrate(35);
+
+          if (isControllerOnlyMode && peerConn && peerConn.open) {
+            peerConn.send({ type: 'SWING', power: normPower, aim: aimRatio });
+          } else {
+            triggerPlayerSwing(normPower, aimRatio);
+          }
+        }
+      });
+    }
+
+    function updateTelemetryUI() {
+      const pct = Math.min(100, (motionState.accelMag / 22) * 100);
+      const hudBar = document.getElementById('hudSwingBar');
+      if (hudBar) hudBar.style.width = `${pct}%`;
+
+      const ctrlBar = document.getElementById('controllerSwingBar');
+      if (ctrlBar) ctrlBar.style.width = `${pct}%`;
+
+      const txt = `Tilt: ${Math.round(motionState.tiltGamma)}° | Force: ${motionState.accelMag.toFixed(1)}`;
+      const hudTxt = document.getElementById('liveTelemetryText');
+      if (hudTxt) hudTxt.textContent = txt;
+
+      const ctrlTxt = document.getElementById('controllerDebugText');
+      if (ctrlTxt) ctrlTxt.textContent = txt;
+    }
+
+    /******************************************************************
+     * 3. WEBRTC (PEERJS) DUAL-SCREEN CONNECTION
+     ******************************************************************/
+    let peer = null;
+    let peerConn = null;
+    let isControllerOnlyMode = false;
+
+    function generateRoomCode() {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let code = '';
+      for (let i = 0; i < 4; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+      return code;
+    }
+
+    function initHostPC() {
+      const code = generateRoomCode();
+      document.getElementById('hostRoomCode').textContent = code;
+      if (peer) peer.destroy();
+      peer = new Peer(`MOTION-TENNIS-${code}`);
+
+      peer.on('connection', (conn) => {
+        peerConn = conn;
+        document.getElementById('sensorDot').classList.add('live');
+        document.getElementById('sensorStatusText').textContent = `Wireless Racket Connected (${code})`;
+        document.getElementById('menuModal').classList.add('hidden');
+        sfx.playScoreTone(true);
+
+        conn.on('data', (data) => {
+          if (data.type === 'TILT') {
+            motionState.tiltGamma = data.tilt;
+            motionState.accelMag = data.force || 0;
+            updateTelemetryUI();
+          } else if (data.type === 'SWING') {
+            triggerPlayerSwing(data.power, data.aim);
+          }
+        });
+      });
+    }
+
+    async function initPhoneController(code) {
+      if (!code || code.length !== 4) {
+        document.getElementById('joinStatusText').textContent = 'Enter a valid 4-letter code.';
+        return;
+      }
+      await enableMotionSensors();
+      document.getElementById('joinStatusText').textContent = 'Connecting...';
+
+      if (peer) peer.destroy();
+      peer = new Peer();
+
+      peer.on('open', () => {
+        const conn = peer.connect(`MOTION-TENNIS-${code.toUpperCase()}`);
+        conn.on('open', () => {
+          peerConn = conn;
+          isControllerOnlyMode = true;
+          document.getElementById('menuModal').classList.add('hidden');
+          document.getElementById('racketControllerUI').classList.remove('hidden');
+
+          setInterval(() => {
+            if (peerConn && peerConn.open) {
+              peerConn.send({
+                type: 'TILT',
+                tilt: motionState.tiltGamma,
+                force: motionState.accelMag
+              });
+            }
+          }, 40);
+        });
+      });
+    }
+
+    /******************************************************************
+     * 4. TENNIS PHYSICS & GAMEPLAY ENGINE
+     ******************************************************************/
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    const COURT = { widthNear: 360, netZ: 50, netHeight: 16 };
+
+    const scoreState = {
+      points: ['0', '15', '30', '40'],
+      pIdx: 0,
+      aiIdx: 0,
+      pGames: 0,
+      aiGames: 0,
+      waitingForServe: true,
+      bannerText: 'SWING PHONE OR SWIPE UP TO SERVE!',
+      shotFeedback: '',
+      shotFeedbackColor: '#ccff00',
+      shotFeedbackTimer: 0
+    };
+
+    const player = { x: 0, targetX: 0, z: 4, swingAnim: 0, swingCooldown: 0, racketSide: 1 };
+    const ai = { x: 0, z: 96, speed: 2.3, swingAnim: 0 };
+    const ball = { x: 15, y: 24, z: 8, vx: 0, vy: 0, vz: 0, gravity: 0.23, bounces: 0, lastHitter: null, trail: [] };
+
+    function resetBallForServe() {
+      scoreState.waitingForServe = true;
+      ball.bounces = 0;
+      ball.trail = [];
+      player.x = 20;
+      player.targetX = 20;
+      ai.x = -20;
+      ball.x = player.x + 10;
+      ball.y = 22;
+      ball.z = player.z + 4;
+      ball.vx = 0; ball.vy = 0; ball.vz = 0;
+      scoreState.bannerText = 'SWING PHONE OR SWIPE TO SERVE!';
+    }
+
+    function showFeedback(text, color = '#ccff00') {
+      scoreState.shotFeedback = text;
+      scoreState.shotFeedbackColor = color;
+      scoreState.shotFeedbackTimer = 55;
+    }
+
+    function triggerPlayerSwing(power = 1.0, aimOverride = null) {
+      if (player.swingCooldown > 0) return;
+      player.swingAnim = 1.0;
+      player.swingCooldown = 15;
+
+      // 1. Serving
+      if (scoreState.waitingForServe) {
+        scoreState.waitingForServe = false;
+        ball.y = 32;
+        const aimAngle = aimOverride !== null ? aimOverride : (motionState.tiltGamma / 40);
+        ball.vx = (-0.8 + aimAngle * 1.1) * 1.7;
+        ball.vz = 1.72 * Math.min(1.35, Math.max(0.95, power));
+        ball.vy = 4.5;
+        ball.bounces = 0;
+        ball.lastHitter = 'PLAYER';
+        sfx.playHit(power);
+        showFeedback(power > 1.25 ? 'POWER SERVE!' : 'SERVE!', '#ccff00');
+        return;
+      }
+
+      // 2. Returning Ball (Extra generous timing window for Single-Phone Mode)
+      const dz = ball.z - player.z;
+      const dx = Math.abs(ball.x - player.x);
+
+      if (ball.vz < 0 && dz > -15 && dz < 46 && dx < 145) {
+        const timingOffset = (dz - 14) / 22;
+        let feedbackLabel = 'PERFECT!';
+        let feedbackCol = '#ccff00';
+
+        if (dz > 24) {
+          feedbackLabel = 'EARLY!';
+          feedbackCol = '#38bdf8';
+        } else if (dz < 2) {
+          feedbackLabel = 'LATE!';
+          feedbackCol = '#fbbf24';
+        } else if (power > 1.28) {
+          feedbackLabel = 'SMASH!';
+          feedbackCol = '#f43f5e';
+        }
+
+        const tiltAim = aimOverride !== null ? aimOverride : (motionState.tiltGamma / 40);
+        const targetX = Math.max(-130, Math.min(130, (tiltAim * 120) - (timingOffset * 50)));
+
+        const flightFrames = 56 / Math.min(1.38, Math.max(0.9, power));
+        ball.vz = (94 - ball.z) / flightFrames;
+        ball.vx = (targetX - ball.x) / flightFrames;
+        ball.vy = (0.5 * ball.gravity * flightFrames) - (ball.y / flightFrames) + 0.55;
+
+        ball.bounces = 0;
+        ball.lastHitter = 'PLAYER';
+        sfx.playHit(power);
+        showFeedback(feedbackLabel, feedbackCol);
+      }
+    }
+
+    function awardPoint(winner) {
+      if (winner === 'PLAYER') {
+        scoreState.pIdx++;
+        sfx.playScoreTone(true);
+      } else {
+        scoreState.aiIdx++;
+        sfx.playScoreTone(false);
+      }
+
+      if (scoreState.pIdx >= 4 && scoreState.pIdx - scoreState.aiIdx >= 2) {
+        scoreState.pGames++;
+        scoreState.pIdx = 0; scoreState.aiIdx = 0;
+      } else if (scoreState.aiIdx >= 4 && scoreState.aiIdx - scoreState.pIdx >= 2) {
+        scoreState.aiGames++;
+        scoreState.pIdx = 0; scoreState.aiIdx = 0;
+      } else if (scoreState.pIdx >= 3 && scoreState.aiIdx >= 3 && scoreState.pIdx === scoreState.aiIdx) {
+        scoreState.pIdx = 3; scoreState.aiIdx = 3;
+      }
+
+      updateScoreHUD();
+      resetBallForServe();
+    }
+
+    function updateScoreHUD() {
+      let pText = scoreState.points[Math.min(3, scoreState.pIdx)];
+      let aiText = scoreState.points[Math.min(3, scoreState.aiIdx)];
+      if (scoreState.pIdx >= 3 && scoreState.aiIdx >= 3) {
+        if (scoreState.pIdx > scoreState.aiIdx) { pText = 'AD'; aiText = '40'; }
+        else if (scoreState.aiIdx > scoreState.pIdx) { pText = '40'; aiText = 'AD'; }
+      }
+      document.getElementById('pScore').textContent = pText;
+      document.getElementById('aiScore').textContent = aiText;
+      document.getElementById('pGames').textContent = scoreState.pGames;
+      document.getElementById('aiGames').textContent = scoreState.aiGames;
+    }
+
+    /******************************************************************
+     * 5. TOUCH SWIPE & MOUSE CONTROLS (Always Active as Backup)
+     ******************************************************************/
+    let pointerDown = false;
+    let pointerStart = { x: 0, y: 0, time: 0 };
+
+    canvas.addEventListener('pointerdown', (e) => {
+      sfx.init();
+      pointerDown = true;
+      pointerStart = { x: e.clientX, y: e.clientY, time: performance.now() };
+    });
+
+    canvas.addEventListener('pointermove', (e) => {
+      if (motionState.eventsReceived === 0) {
+        const normX = (e.clientX / window.innerWidth) * 2 - 1;
+        player.targetX = normX * 145;
+      }
+    });
+
+    canvas.addEventListener('pointerup', (e) => {
+      if (!pointerDown) return;
+      pointerDown = false;
+      const dx = e.clientX - pointerStart.x;
+      const dy = pointerStart.y - e.clientY;
+      const dt = Math.max(16, performance.now() - pointerStart.time);
+      const swipeSpeed = Math.sqrt(dx * dx + dy * dy) / dt;
+      const power = Math.min(1.45, Math.max(0.95, 0.9 + swipeSpeed * 0.35));
+      const aim = Math.max(-1, Math.min(1, dx / 160));
+      triggerPlayerSwing(power, aim);
+    });
+
+    /******************************************************************
+     * 6. 3D COURT PROJECTION & RENDER LOOP
+     ******************************************************************/
+    function project3D(worldX, worldY, worldZ) {
+      const w = canvas.width;
+      const h = canvas.height;
+      const horizonY = h * 0.27;
+      const nearY = h * 0.84;
+      const depth = worldZ / 100;
+      const perspectiveScale = 1 / (1 + depth * 1.35);
+
+      const screenX = (w / 2) + (worldX * (w / 440) * perspectiveScale * 1.35);
+      const groundY = nearY - (nearY - horizonY) * (1 - perspectiveScale) * 1.65;
+      const screenY = groundY - (worldY * perspectiveScale * (h / 260));
+      return { x: screenX, y: screenY, groundY, scale: perspectiveScale };
+    }
+
+    function updatePhysics() {
+      if (player.swingCooldown > 0) player.swingCooldown--;
+      if (player.swingAnim > 0) player.swingAnim = Math.max(0, player.swingAnim - 0.08);
+      if (ai.swingAnim > 0) ai.swingAnim = Math.max(0, ai.swingAnim - 0.08);
+      if (scoreState.shotFeedbackTimer > 0) scoreState.shotFeedbackTimer--;
+
+      // Auto-move player toward ball + tilt offset in Single Phone mode
+      if (!scoreState.waitingForServe) {
+        const tiltShift = (motionState.tiltGamma / 45) * 42;
+        player.targetX = (ball.x * 0.82) + tiltShift;
+      }
+
+      player.x += (player.targetX - player.x) * 0.2;
+      player.x = Math.max(-160, Math.min(160, player.x));
+      player.racketSide = ball.x >= player.x ? 1 : -1;
+
+      if (scoreState.waitingForServe) {
+        ball.x = player.x + 14;
+        ball.y = 22 + Math.sin(performance.now() * 0.006) * 3;
+        ball.z = player.z + 4;
+        return;
+      }
+
+      ball.x += ball.vx;
+      ball.y += ball.vy;
+      ball.z += ball.vz;
+      ball.vy -= ball.gravity;
+
+      ball.trail.push({ x: ball.x, y: ball.y, z: ball.z });
+      if (ball.trail.length > 10) ball.trail.shift();
+
+      // Net Check
+      if ((ball.z - ball.vz < COURT.netZ && ball.z >= COURT.netZ) ||
+          (ball.z - ball.vz > COURT.netZ && ball.z <= COURT.netZ)) {
+        if (ball.y < COURT.netHeight) {
+          sfx.playBounce();
+          showFeedback('NET!', '#ef4444');
+          awardPoint(ball.lastHitter === 'PLAYER' ? 'AI' : 'PLAYER');
+          return;
+        }
+      }
+
+      // Bounce Check
+      if (ball.y <= 0) {
+        ball.y = 0;
+        ball.vy = Math.abs(ball.vy) * 0.75;
+        ball.bounces++;
+        sfx.playBounce();
+
+        if (ball.bounces === 1) {
+          const outWide = Math.abs(ball.x) > 152;
+          const outLong = (ball.lastHitter === 'PLAYER' && ball.z > 104) ||
+                          (ball.lastHitter === 'AI' && ball.z < -4);
+          if (outWide || outLong) {
+            showFeedback('OUT!', '#ef4444');
+            awardPoint(ball.lastHitter === 'PLAYER' ? 'AI' : 'PLAYER');
+            return;
+          }
+        }
+        if (ball.bounces >= 2) {
+          awardPoint(ball.lastHitter);
+          return;
+        }
+      }
+
+      if (ball.z < -22) { awardPoint(ball.bounces >= 1 ? 'AI' : 'PLAYER'); return; }
+      if (ball.z > 122) { awardPoint(ball.bounces >= 1 ? 'PLAYER' : 'AI'); return; }
+
+      // AI Opponent
+      if (ball.vz > 0) {
+        const diff = ball.x - ai.x;
+        ai.x += Math.sign(diff) * Math.min(Math.abs(diff), ai.speed);
+        if (ball.z >= 88 && ball.z <= 99 && Math.abs(ball.x - ai.x) < 54) {
+          ai.swingAnim = 1.0;
+          const aiTargetX = (Math.random() - 0.5) * 210;
+          const frames = 58;
+          ball.vz = (6 - ball.z) / frames;
+          ball.vx = (aiTargetX - ball.x) / frames;
+          ball.vy = (0.5 * ball.gravity * frames) - (ball.y / frames) + 0.5;
+          ball.bounces = 0;
+          ball.lastHitter = 'AI';
+          sfx.playHit(0.95);
+        }
+      } else {
+        ai.x += (0 - ai.x) * 0.05;
+      }
+    }
+
+    function drawRacket(screenX, screenY, scale, swingProgress, side = 1, isPlayer = true) {
+      ctx.save();
+      ctx.translate(screenX, screenY);
+      const tiltRad = isPlayer ? (motionState.tiltGamma * Math.PI) / 180 : 0;
+      const baseAngle = side * 0.4 + tiltRad * 0.5 - (swingProgress * side * 1.6);
+      ctx.rotate(baseAngle);
+      ctx.scale(scale, scale);
+
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.moveTo(0, 15);
+      ctx.lineTo(0, -18);
+      ctx.stroke();
+
+      ctx.strokeStyle = isPlayer ? '#ccff00' : '#f43f5e';
+      ctx.lineWidth = 5;
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
+      ctx.beginPath();
+      ctx.ellipse(0, -45, 22, 28, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function render() {
+      const w = canvas.width;
+      const h = canvas.height;
+
+      const bgGrad = ctx.createLinearGradient(0, 0, 0, h);
+      bgGrad.addColorStop(0, '#090d16');
+      bgGrad.addColorStop(0.28, '#1e293b');
+      bgGrad.addColorStop(0.28, '#15803d');
+      bgGrad.addColorStop(1, '#14532d');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, w, h);
+
+      const cTL = project3D(-150, 0, 100);
+      const cTR = project3D(150, 0, 100);
+      const cBR = project3D(150, 0, 0);
+      const cBL = project3D(-150, 0, 0);
+
+      ctx.fillStyle = '#1d4ed8';
+      ctx.beginPath();
+      ctx.moveTo(cTL.x, cTL.groundY);
+      ctx.lineTo(cTR.x, cTR.groundY);
+      ctx.lineTo(cBR.x, cBR.groundY);
+      ctx.lineTo(cBL.x, cBL.groundY);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+      ctx.lineWidth = 2;
+      function drawLine3D(x1, z1, x2, z2) {
+        const p1 = project3D(x1, 0, z1);
+        const p2 = project3D(x2, 0, z2);
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.groundY);
+        ctx.lineTo(p2.x, p2.groundY);
+        ctx.stroke();
+      }
+      drawLine3D(-150, 0, -150, 100);
+      drawLine3D(150, 0, 150, 100);
+      drawLine3D(-115, 0, -115, 100);
+      drawLine3D(115, 0, 115, 100);
+      drawLine3D(-150, 0, 150, 0);
+      drawLine3D(-150, 100, 150, 100);
+      drawLine3D(-115, 24, 115, 24);
+      drawLine3D(-115, 76, 115, 76);
+      drawLine3D(0, 24, 0, 76);
+
+      // Net
+      const netLBottom = project3D(-165, 0, 50);
+      const netRBottom = project3D(165, 0, 50);
+      const netLTop = project3D(-165, COURT.netHeight, 50);
+      const netRTop = project3D(165, COURT.netHeight, 50);
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.55)';
+      ctx.beginPath();
+      ctx.moveTo(netLTop.x, netLTop.y);
+      ctx.lineTo(netRTop.x, netRTop.y);
+      ctx.lineTo(netRBottom.x, netRBottom.groundY);
+      ctx.lineTo(netLBottom.x, netLBottom.groundY);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 3.5;
+      ctx.beginPath();
+      ctx.moveTo(netLTop.x, netLTop.y);
+      ctx.lineTo(netRTop.x, netRTop.y);
+      ctx.stroke();
+
+      // AI Opponent
+      const aiPos = project3D(ai.x, 0, ai.z);
+      ctx.fillStyle = '#f43f5e';
+      ctx.beginPath();
+      ctx.roundRect(aiPos.x - 14 * aiPos.scale, aiPos.groundY - 58 * aiPos.scale, 28 * aiPos.scale, 42 * aiPos.scale, 8);
+      ctx.fill();
+      ctx.fillStyle = '#fde047';
+      ctx.beginPath();
+      ctx.arc(aiPos.x, aiPos.groundY - 72 * aiPos.scale, 12 * aiPos.scale, 0, Math.PI * 2);
+      ctx.fill();
+      drawRacket(aiPos.x + 22 * aiPos.scale, aiPos.groundY - 35 * aiPos.scale, aiPos.scale * 0.9, ai.swingAnim, 1, false);
+
+      // Ball Shadow & Ball
+      const ballShadow = project3D(ball.x, 0, ball.z);
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+      ctx.beginPath();
+      const shadowRad = Math.max(3, 12 * ballShadow.scale * (1 - ball.y / 90));
+      ctx.ellipse(ballShadow.x, ballShadow.groundY, shadowRad, shadowRad * 0.45, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      const ballPos = project3D(ball.x, ball.y, ball.z);
+      const ballRadius = Math.max(5, 11 * ballPos.scale);
+      ctx.fillStyle = '#ccff00';
+      ctx.beginPath();
+      ctx.arc(ballPos.x, ballPos.y, ballRadius, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Target Ring when in swing range
+      if (!scoreState.waitingForServe && ball.vz < 0 && ball.z < 44 && ball.z > -10) {
+        ctx.strokeStyle = 'rgba(204, 255, 0, 0.85)';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(ballPos.x, ballPos.y, ballRadius + 11, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      // Player & Motion Racket
+      const pPos = project3D(player.x, 0, player.z);
+      ctx.fillStyle = 'rgba(56, 189, 248, 0.4)';
+      ctx.beginPath();
+      ctx.roundRect(pPos.x - 18 * pPos.scale, pPos.groundY - 64 * pPos.scale, 36 * pPos.scale, 48 * pPos.scale, 10);
+      ctx.fill();
+
+      drawRacket(
+        pPos.x + player.racketSide * 34 * pPos.scale,
+        pPos.groundY - 36 * pPos.scale,
+        pPos.scale * 1.15,
+        player.swingAnim,
+        player.racketSide,
+        true
+      );
+
+      // Serve prompt banner
+      if (scoreState.waitingForServe) {
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+        ctx.beginPath();
+        ctx.roundRect(w / 2 - 170, h * 0.16, 340, 40, 10);
+        ctx.fill();
+        ctx.fillStyle = '#ccff00';
+        ctx.font = '700 14px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(scoreState.bannerText, w / 2, h * 0.16 + 25);
+      }
+
+      if (scoreState.shotFeedbackTimer > 0) {
+        ctx.save();
+        ctx.font = '900 26px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = scoreState.shotFeedbackColor;
+        ctx.fillText(scoreState.shotFeedback, w / 2, h * 0.42 - (55 - scoreState.shotFeedbackTimer) * 0.5);
+        ctx.restore();
+      }
+    }
+
+    function gameLoop() {
+      if (!isControllerOnlyMode) {
+        updatePhysics();
+        render();
+      }
+      requestAnimationFrame(gameLoop);
+    }
+
+    /******************************************************************
+     * 7. UI EVENT BINDINGS
+     ******************************************************************/
+    document.getElementById('optSinglePhone').addEventListener('click', async () => {
+      document.getElementById('menuModal').classList.add('hidden');
+      const ok = await enableMotionSensors();
+      if (ok) {
+        document.getElementById('sensorDot').classList.add('live');
+        document.getElementById('sensorStatusText').textContent = 'Motion Racket Active';
+      }
+    });
+
+    document.getElementById('optHostPC').addEventListener('click', () => {
+      document.getElementById('hostPanel').classList.remove('hidden');
+      document.getElementById('joinPanel').classList.add('hidden');
+      initHostPC();
+    });
+
+    document.getElementById('optPhoneController').addEventListener('click', () => {
+      document.getElementById('joinPanel').classList.remove('hidden');
+      document.getElementById('hostPanel').classList.add('hidden');
+    });
+
+    document.getElementById('btnConnectPeer').addEventListener('click', () => {
+      const code = document.getElementById('joinCodeInput').value.trim();
+      initPhoneController(code);
+    });
+
+    document.getElementById('optTouchMouse').addEventListener('click', () => {
+      sfx.init();
+      document.getElementById('menuModal').classList.add('hidden');
+    });
+
+    document.getElementById('btnOpenMenu').addEventListener('click', () => {
+      document.getElementById('menuModal').classList.remove('hidden');
+    });
+
+    document.getElementById('btnSensitivity').addEventListener('click', (e) => {
+      sensitivityIdx = (sensitivityIdx + 1) % SENSITIVITY_PRESETS.length;
+      e.target.textContent = `Sens: ${SENSITIVITY_PRESETS[sensitivityIdx].label}`;
+    });
+
+    document.getElementById('btnCalibrate').addEventListener('click', () => {
+      motionState.tiltOffset = motionState.rawGamma;
+      if (navigator.vibrate) navigator.vibrate(25);
+    });
+
+    document.getElementById('btnCenterRacket').addEventListener('click', () => {
+      motionState.tiltOffset = motionState.rawGamma;
+      if (navigator.vibrate) navigator.vibrate(25);
+    });
+
+    document.getElementById('btnTapSwingFallback').addEventListener('click', () => {
+      const aimRatio = motionState.tiltGamma / 40;
+      if (navigator.vibrate) navigator.vibrate(35);
+      if (peerConn && peerConn.open) {
+        peerConn.send({ type: 'SWING', power: 1.15, aim: aimRatio });
+      }
+    });
+
+    document.getElementById('btnExitController').addEventListener('click', () => {
+      isControllerOnlyMode = false;
+      document.getElementById('racketControllerUI').classList.add('hidden');
+      document.getElementById('menuModal').classList.remove('hidden');
+    });
+
+    resetBallForServe();
+    requestAnimationFrame(gameLoop);
+  </script>
+</body>
+</html>
