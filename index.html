@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Grand Slam 3D Tennis — 1st-Person IK & Smart Camera</title>
+  <title>Grand Slam 3D Tennis — Fixed Ballistic Serve & 1st-Person IK</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
@@ -2155,7 +2155,7 @@
     }
 
     /******************************************************************
-     * 5. CONTROLLED ON-SCREEN TENNIS PHYSICS & 4-PHASE SWING STATE
+     * 5. EXACT BALLISTIC TENNIS PHYSICS & 4-PHASE SWING STATE
      ******************************************************************/
     const COURT = { widthNear: 360, netZ: 50, netHeight: 16 };
     let cameraShake = 0;
@@ -2190,7 +2190,7 @@
       racketRot: new THREE.Vector3(0.35, -0.2, -0.35),
       racketRotVel: new THREE.Vector3(0, 0, 0)
     };
-    const ai = { x: 0, prevX: 0, z: 96, speed: 2.4, swingAnim: 0, stridePhase: 0 };
+    const ai = { x: 0, prevX: 0, z: 96, speed: 2.5, swingAnim: 0, stridePhase: 0 };
     const ball = {
       x: 15,
       y: 22,
@@ -2198,12 +2198,49 @@
       vx: 0,
       vy: 0,
       vz: 0,
-      gravity: 0.22,
+      gravity: 0.20,
       bounces: 0,
       lastHitter: null,
       trail: [],
       isBoosted: false
     };
+
+    /**
+     * Exact Discrete Ballistic Trajectory Solver:
+     * Calculates (vx, vy, vz) so the ball starting at (ball.x, ball.y, ball.z)
+     * is guaranteed to clear the net (Z=50, Y>=22) and land on the court (Y=0)
+     * at (targetX, targetZ) in N frames.
+     */
+    function launchBallToTarget(targetX, targetZ, desiredFrames, minNetClearanceY = 22) {
+      let N = Math.max(24, Math.round(desiredFrames));
+      const g = ball.gravity;
+      const startX = ball.x;
+      const startY = Math.max(4, ball.y);
+      const startZ = ball.z;
+
+      // Verify net clearance at Z = 50; if too low, increase flight frames slightly
+      for (let attempt = 0; attempt < 8; attempt++) {
+        const vz = (targetZ - startZ) / N;
+        const vy = (-startY / N) + 0.5 * g * (N - 1);
+        const framesToNet = (COURT.netZ - startZ) / vz;
+        if (framesToNet > 0 && framesToNet < N) {
+          const k = framesToNet;
+          const yAtNet = startY + k * vy - 0.5 * g * (k - 1) * k;
+          if (yAtNet < minNetClearanceY) {
+            N += 4;
+            continue;
+          }
+        }
+        ball.vx = (targetX - startX) / N;
+        ball.vz = vz;
+        ball.vy = vy;
+        return;
+      }
+
+      ball.vx = (targetX - startX) / N;
+      ball.vz = (targetZ - startZ) / N;
+      ball.vy = (-startY / N) + 0.5 * g * (N - 1);
+    }
 
     function resetBallForServe() {
       scoreState.waitingForServe = true;
@@ -2231,37 +2268,39 @@
     function triggerPlayerSwing(power = 1.0, aimOverride = null, explicitStroke = null) {
       if (player.swingCooldown > 0) return;
 
+      const safePower = Number.isFinite(power) ? THREE.MathUtils.clamp(power, 0.85, 1.5) : 1.1;
       const swingStroke = explicitStroke || motionState.currentStance;
       motionState.currentStance = swingStroke;
       player.racketSide = getSideForStroke(swingStroke);
       player.swingProgress = 0.01;
       player.swingCooldown = 20;
-      sfx.playSwoosh(power);
+      sfx.playSwoosh(safePower);
       updateTelemetryUI();
 
-      // 1. Serving (Controlled Arc that stays well inside the screen)
+      // 1. Serving (Guaranteed to clear net at Z=50 and bounce deep in opponent service box at Z=72)
       if (scoreState.waitingForServe) {
         player.activeSwingType = 'SERVE';
         scoreState.waitingForServe = false;
-        ball.y = 26;
-        const aimAngle = THREE.MathUtils.clamp(
-          aimOverride !== null ? aimOverride : (motionState.tiltGamma / 40),
-          -0.85,
-          0.85
-        );
-        const targetServeX = THREE.MathUtils.clamp(-25 + aimAngle * 65, -95, 95);
-        const serveFrames = Math.round(54 / Math.min(1.3, Math.max(0.95, power)));
-        ball.vz = (82 - ball.z) / serveFrames;
-        ball.vx = (targetServeX - ball.x) / serveFrames;
-        ball.vy = (0.5 * ball.gravity * serveFrames) - (ball.y / serveFrames) + 0.35;
+        ball.y = 24;
+        const rawAim = (aimOverride !== null && Number.isFinite(aimOverride))
+          ? aimOverride
+          : (motionState.tiltGamma / 40);
+        const aimAngle = THREE.MathUtils.clamp(rawAim, -0.85, 0.85);
+
+        const targetServeX = THREE.MathUtils.clamp(-24 + aimAngle * 65, -92, 92);
+        const targetServeZ = 72; // Deep inside opponent's service box (Net is 50, Service line is 76)
+        const serveFrames = Math.round(35 / Math.min(1.25, Math.max(0.92, safePower)));
+
+        launchBallToTarget(targetServeX, targetServeZ, serveFrames, 21);
+
         ball.bounces = 0;
         ball.lastHitter = 'PLAYER';
-        ball.isBoosted = power > 1.2;
+        ball.isBoosted = safePower > 1.2;
         cameraShake = 0.7;
-        sfx.playHit(power, 'CLEAN');
+        sfx.playHit(safePower, 'CLEAN');
         spawnHitSparks3D(ball.x, ball.y, ball.z, 0xd4ff00, 16);
         showFeedback(
-          power > 1.25 ? '⚡ POWER SERVE!' : 'CLEAN SERVE!',
+          safePower > 1.22 ? '⚡ POWER SERVE!' : 'CLEAN SERVE!',
           'OVERHEAD PRONATION MOTION',
           '#d4ff00'
         );
@@ -2270,32 +2309,34 @@
 
       player.activeSwingType = swingStroke;
 
-      // 2. Returning Ball (Clamped target bounds & controlled loft so ball never flies off-screen)
+      // 2. Returning Ball (Guaranteed to clear net and land deep in opponent's court at Z=86..90)
       const dz = ball.z - player.z;
       const dx = Math.abs(ball.x - player.x);
 
-      if (ball.vz < 0 && dz > -16 && dz < 50 && dx < 150) {
+      if (ball.vz < 0 && dz > -18 && dz < 52 && dx < 155) {
         const requiredStroke = getRequiredStrokeForBall(ball.x, player.x);
         const isMatchedStroke = (swingStroke === requiredStroke);
 
         const timingOffset = THREE.MathUtils.clamp((dz - 14) / 22, -1, 1);
-        const tiltAim = THREE.MathUtils.clamp(
-          aimOverride !== null ? aimOverride : (motionState.tiltGamma / 40),
-          -1,
-          1
-        );
+        const rawAim = (aimOverride !== null && Number.isFinite(aimOverride))
+          ? aimOverride
+          : (motionState.tiltGamma / 40);
+        const tiltAim = THREE.MathUtils.clamp(rawAim, -1, 1);
 
-        let effectivePower = power;
-        let targetX = (tiltAim * 95) - (timingOffset * 38);
-        let extraLoft = 0.42;
+        let targetX = (tiltAim * 92) - (timingOffset * 36);
+        let targetZ = 88;
+        let flightFrames = 40;
+        let minNetY = 21;
 
         if (isMatchedStroke) {
-          effectivePower = power * 1.2;
           if (swingStroke === 'BACKHAND') targetX *= 1.08;
-          targetX = THREE.MathUtils.clamp(targetX, -108, 108);
+          targetX = THREE.MathUtils.clamp(targetX, -104, 104);
+          targetZ = 90;
+          flightFrames = Math.round(36 / Math.min(1.3, Math.max(0.9, safePower)));
+          minNetY = 20;
           ball.isBoosted = true;
           cameraShake = 1.0;
-          sfx.playHit(effectivePower, 'CLEAN');
+          sfx.playHit(safePower * 1.2, 'CLEAN');
 
           const strokeColor = swingStroke === 'FOREHAND' ? '#00f0ff' : '#c084fc';
           const sparkHex = swingStroke === 'FOREHAND' ? 0x00f0ff : 0xc084fc;
@@ -2306,12 +2347,13 @@
             strokeColor
           );
         } else {
-          effectivePower = power * 0.78;
-          targetX = THREE.MathUtils.clamp(targetX * 0.45, -75, 75);
-          extraLoft = 0.78; // Controlled defensive arc that stays inside top of screen
+          targetX = THREE.MathUtils.clamp(targetX * 0.45, -70, 70);
+          targetZ = 80;
+          flightFrames = 46;
+          minNetY = 26;
           ball.isBoosted = false;
           player.awkwardReachTimer = 28;
-          sfx.playHit(effectivePower, 'AWKWARD');
+          sfx.playHit(safePower * 0.78, 'AWKWARD');
           spawnHitSparks3D(ball.x, ball.y, ball.z, 0xf59e0b, 8);
 
           showFeedback(
@@ -2321,12 +2363,7 @@
           );
         }
 
-        const flightFrames = 56 / Math.min(1.45, Math.max(0.78, effectivePower));
-        ball.vz = (92 - ball.z) / flightFrames;
-        ball.vx = (targetX - ball.x) / flightFrames;
-        ball.vy = (0.5 * ball.gravity * flightFrames) - (ball.y / flightFrames) + extraLoft;
-        ball.vy = Math.min(3.8, ball.vy); // Cap max vertical climb speed
-
+        launchBallToTarget(targetX, targetZ, flightFrames, minNetY);
         ball.bounces = 0;
         ball.lastHitter = 'PLAYER';
       }
@@ -2428,7 +2465,6 @@
       const aspect = window.innerWidth / window.innerHeight;
       const camMode = CAMERA_MODES[cameraModeIdx].id;
       const baseFov = camMode === 'FPV' ? 62 : (camMode === 'ACTION' ? 54 : 46);
-      // Automatically widen vertical FOV on narrow/portrait screens so horizontal court never clips
       const narrowScreenBoost = aspect < 1.35 ? (1.35 - aspect) * 28 : 0;
       camera.fov = Math.min(86, baseFov + narrowScreenBoost);
       camera.aspect = aspect;
@@ -2482,12 +2518,6 @@
       ball.z += ball.vz;
       ball.vy -= ball.gravity;
 
-      // Hard ceiling clamp so ball never arcs above the camera viewport
-      if (ball.y > 35) {
-        ball.y = 35;
-        if (ball.vy > 0) ball.vy *= 0.3;
-      }
-
       ballMesh.rotation.x += ball.vz * 0.16;
       ballMesh.rotation.z -= ball.vx * 0.16;
 
@@ -2506,18 +2536,18 @@
         }
       }
 
-      // Ground Bounce (Controlled rebound height so ball stays on screen)
+      // Ground Bounce
       if (ball.y <= 0) {
         ball.y = 0;
-        ball.vy = Math.min(3.1, Math.abs(ball.vy) * 0.72);
+        ball.vy = Math.min(3.2, Math.abs(ball.vy) * 0.76);
         ball.bounces++;
         sfx.playBounce();
         spawnBounceMark3D(ball.x, ball.z, ball.isBoosted);
 
         if (ball.bounces === 1) {
           const outWide = Math.abs(ball.x) > 148;
-          const outLong = (ball.lastHitter === 'PLAYER' && ball.z > 103) ||
-                          (ball.lastHitter === 'AI' && ball.z < -3);
+          const outLong = (ball.lastHitter === 'PLAYER' && ball.z > 104) ||
+                          (ball.lastHitter === 'AI' && ball.z < -4);
           if (outWide || outLong) {
             showFeedback('OUT!', 'HAWKEYE CALL: OUT', '#ef4444');
             awardPoint(ball.lastHitter === 'PLAYER' ? 'AI' : 'PLAYER');
@@ -2530,25 +2560,21 @@
         }
       }
 
-      // Promptly award point before ball drifts off-screen past baselines or sidelines
-      if (ball.z < -10) { awardPoint(ball.bounces >= 1 ? 'AI' : 'PLAYER'); return; }
-      if (ball.z > 112) { awardPoint(ball.bounces >= 1 ? 'PLAYER' : 'AI'); return; }
-      if (Math.abs(ball.x) > 158) {
+      if (ball.z < -12) { awardPoint(ball.bounces >= 1 ? 'AI' : 'PLAYER'); return; }
+      if (ball.z > 115) { awardPoint(ball.bounces >= 1 ? 'PLAYER' : 'AI'); return; }
+      if (Math.abs(ball.x) > 160) {
         awardPoint(ball.lastHitter === 'PLAYER' ? 'AI' : 'PLAYER');
         return;
       }
 
-      // AI Opponent (Returns within comfortable court bounds)
+      // AI Opponent (Returns after 1st bounce on AI side, landing around Z=18 on player's side)
       if (ball.vz > 0) {
         const diff = ball.x - ai.x;
         ai.x += Math.sign(diff) * Math.min(Math.abs(diff), ai.speed);
-        if (ball.z >= 88 && ball.z <= 99 && Math.abs(ball.x - ai.x) < 56) {
+        if (ball.z >= 84 && ball.z <= 102 && Math.abs(ball.x - ai.x) < 62) {
           ai.swingAnim = 1.0;
-          const cornerChoice = (Math.random() > 0.5 ? 1 : -1) * (40 + Math.random() * 52);
-          const frames = 58;
-          ball.vz = (7 - ball.z) / frames;
-          ball.vx = (cornerChoice - ball.x) / frames;
-          ball.vy = (0.5 * ball.gravity * frames) - (ball.y / frames) + 0.42;
+          const cornerChoice = (Math.random() > 0.5 ? 1 : -1) * (38 + Math.random() * 50);
+          launchBallToTarget(cornerChoice, 18, 44, 21);
           ball.bounces = 0;
           ball.isBoosted = false;
           ball.lastHitter = 'AI';
@@ -2728,7 +2754,6 @@
       }
     }
 
-    // Active Frustum Clamping: Ensures the 3D ball never leaves the safe screen frame in any camera mode
     const smoothedLookTarget = new THREE.Vector3(0, 10, -25);
     const ndcTestVec = new THREE.Vector3();
 
@@ -2737,7 +2762,6 @@
       let desiredLook = new THREE.Vector3();
 
       if (camMode === 'FPV') {
-        // Place FPV camera slightly behind the contact plane (pz3 + 15) so incoming balls never pass behind the lens
         const safeBackZ = Math.max(pz3 + 15, bz3 + 11.5);
         desiredCamPos.set(
           THREE.MathUtils.lerp(px3, bx3, 0.35) + shakeX * 0.4,
@@ -2769,7 +2793,6 @@
           THREE.MathUtils.lerp(-18, bz3, 0.25)
         );
       } else {
-        // TV Broadcast Cam
         const safeBackZ = Math.max(176, bz3 + 45);
         desiredCamPos.set(
           THREE.MathUtils.lerp(px3 * 0.22, bx3 * 0.3, 0.4) + shakeX,
@@ -2788,14 +2811,12 @@
       camera.lookAt(smoothedLookTarget);
       camera.updateMatrixWorld();
 
-      // Frustum Guard: Check if the ball's projected screen coordinates approach the screen edges
       if (!scoreState.waitingForServe) {
         ndcTestVec.set(bx3, by3, bz3).project(camera);
         const maxAbsX = Math.abs(ndcTestVec.x);
         const maxAbsY = Math.abs(ndcTestVec.y);
 
         if (maxAbsX > 0.70 || maxAbsY > 0.64 || ndcTestVec.z > 0.98) {
-          // Steer look target directly toward the ball so it stays locked inside the safe screen frame
           const correctionStrength = Math.min(0.85, Math.max(maxAbsX - 0.65, maxAbsY - 0.58) * 1.8);
           const ballWorldPos = new THREE.Vector3(bx3, by3, Math.min(camera.position.z - 12, bz3));
           smoothedLookTarget.lerp(ballWorldPos, correctionStrength);
@@ -2818,7 +2839,6 @@
       fpvRig.swooshMesh.visible = isFPV;
       player3D.root.visible = !isFPV;
 
-      // 1. Sync Third-Person Near Athlete
       const px3 = to3DX(player.x);
       const pz3 = to3DZ(player.z);
       const splitStepBounce = Math.abs(Math.sin(now * 0.008)) * 0.45;
@@ -2841,7 +2861,6 @@
       player3D.racketObj.frameMat.emissive.setHex(isFH ? 0x00f0ff : 0xc084fc);
       player3D.jerseyMat.color.setHex(player.awkwardReachTimer > 0 ? 0xf59e0b : 0x0284c7);
 
-      // 2. Sync Far AI Pro Athlete
       const aix3 = to3DX(ai.x);
       const aiz3 = to3DZ(ai.z);
       const aiSplitBounce = Math.abs(Math.cos(now * 0.0085)) * 0.45;
@@ -2857,7 +2876,6 @@
       ai3D.torsoPivot.rotation.y = -0.4 + aiSwingArc * 1.2;
       ai3D.rightArm.shoulderPivot.rotation.x = -0.35 + aiSwingArc * 1.45;
 
-      // 3. Sync Ball & 3D Trail
       const bx3 = to3DX(ball.x);
       const by3 = Math.max(1.5, to3DY(ball.y));
       const bz3 = to3DZ(ball.z);
@@ -2877,7 +2895,6 @@
         }
       }
 
-      // 4. Smart Frustum-Clamped Camera Tracking + First-Person Rig Attachment
       const shakeX = (Math.random() - 0.5) * cameraShake * 1.8;
       const shakeY = (Math.random() - 0.5) * cameraShake * 1.8;
 
@@ -2896,7 +2913,6 @@
         }
       }
 
-      // 5. Animate Stadium Crowd Cheering on Points
       if (crowdInstancedMesh && (crowdCheerTimer > 0 || Math.floor(now / 16) % 3 === 0)) {
         const amp = crowdCheerTimer > 0 ? 1.8 : 0.22;
         const speed = crowdCheerTimer > 0 ? 0.025 : 0.004;
@@ -2910,7 +2926,6 @@
         crowdInstancedMesh.instanceMatrix.needsUpdate = true;
       }
 
-      // 6. Update Bounce Rings & 3D Sparks
       for (let i = bounceMarks.length - 1; i >= 0; i--) {
         const bm = bounceMarks[i];
         bm.age++;
